@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg:       var(--theme-bg);
+  --color-surface:  var(--theme-surface);
+  --color-surface2: var(--theme-surface2);
+  --color-border:   var(--theme-border);
+  --color-accent:   var(--theme-accent);
+  --color-soil:     var(--theme-soil);
+  --color-warn:     var(--theme-warn);
+  --color-crit:     var(--theme-crit);
+  --color-ink:      var(--theme-ink);
+  --color-muted:    var(--theme-muted);
+}
+
+/* ── Botanical light theme ───────────────────────────────────────────────── */
+:root {
+  --theme-bg:       #DFDDD1;   /* Timberwolf  — page background              */
+  --theme-surface:  #f5f3eb;   /* warm white  — modals, login card, inputs   */
+  --theme-surface2: #e4e8d5;   /* light sage  — list cards                   */
+  --theme-border:   #c4c9b2;   /* muted green border                         */
+  --theme-accent:   #799851;   /* Palm Leaf   — links, tags, focus           */
+  --theme-soil:     #47622A;   /* Dark Moss   — primary buttons              */
+  --theme-warn:     #a06010;
+  --theme-crit:     #b83020;
+  --theme-ink:      #374426;   /* Kombu Green — main text                    */
+  --theme-muted:    #7a8c68;   /* muted text                                 */
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background-color: var(--theme-bg);
+  color: var(--theme-ink);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+::-webkit-scrollbar        { width: 5px; }
+::-webkit-scrollbar-track  { background: var(--theme-surface2); }
+::-webkit-scrollbar-thumb  { background: var(--theme-border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--theme-accent); }

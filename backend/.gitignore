@@ -1,0 +1,46 @@
+# ── Maven ────────────────────────────────────────────────────────────────────
+**/**/target/
+**/**/*.jar
+**/**/*.war
+**/**/*.ear
+**/**/.mvn/wrapper/maven-wrapper.jar
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
+*.iml
+*.iws
+*.ipr
+**/**/.vscode/
+**/**/.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+backend/.classpath
+backend/.project
+backend/.factorypath
+backend/.settings/
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+**/**/.DS_Store
+**/**/Thumbs.db
+
+# ── Spring Boot ──────────────────────────────────────────────────────────────
+**/**/spring-shell.log
+
+# ── TLS certificates (never commit private keys or .p12 bundles) ─────────────
+**/**/*.crt
+**/**/*.pem
+**/**/*.p12
+**/**/*.key
+
+# ── Environment / secrets ─────────────────────────────────────────────────────
+**/**/.env
+**/**/*.env
+
+# ── Docker volumes (if bind-mounted locally) ──────────────────────────────────
+**/**/infra/volumes/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+**/**/*.log
+**/**/logs/

@@ -1,0 +1,55 @@
+# ==============================================================================
+# GMS Backend – development profile
+# Activate: export SPRING_PROFILES_ACTIVE=dev  (or -Dspring.profiles.active=dev)
+#
+# Local stack:
+# - MQTT broker from gateway workspace on localhost:1883
+# - PostgreSQL + TimescaleDB from backend/infra/docker-compose.yml
+# ==============================================================================
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/gms_backend}
+    username: ${SPRING_DATASOURCE_USERNAME:gms}
+    password: ${SPRING_DATASOURCE_PASSWORD:gms}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    default-schema: gms
+    schemas: gms
+    create-schemas: true
+
+server:
+  port: 8081
+
+gms:
+  mqtt:
+    broker-url: tcp://localhost:1883
+    client-id-prefix: gms-backend-dev
+    username: dev-user
+    password: dev-pass
+    qos: 1
+    clean-session: true
+    subscription-topics:
+      - "gms/+/+/uplink/#"
+    # Explicitly blank out TLS cert paths so MqttClientFactoryConfig skips SSL setup.
+    # application.yml sets defaults (certs/ca.crt etc.) which Spring merges in;
+    # empty strings here override those defaults and signal "no TLS in dev".
+    tls:
+      ca-cert-path: ""
+      client-cert-path: ""
+      key-password: ""
+
+logging:
+  level:
+    md.utm.gms: INFO
+    md.utm.gms.backend.mqtt.handler.RegistryHandler: WARN
+    md.utm.gms.backend.mqtt.handler.TelemetryHandler: WARN
+    md.utm.gms.backend.mqtt.handler.StatusHandler: WARN
+    org.springframework.integration: INFO
+    org.eclipse.paho: WARN
+
+management:
+  endpoint:
+    health:
+      show-details: always
