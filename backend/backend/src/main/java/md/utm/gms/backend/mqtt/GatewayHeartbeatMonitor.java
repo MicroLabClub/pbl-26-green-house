@@ -39,16 +39,16 @@ public class GatewayHeartbeatMonitor {
         for (OfflineGateway gw : stale) {
             long minutesAgo = Duration.between(gw.lastSeenAt(), Instant.now()).toMinutes();
 
-            String alertId = "hb:" + gw.tenantId() + ":" + gw.greenhouseId() + ":" + gw.gatewayId();
+            String alertId = "hb:" + gw.tenantId() + ":" + gw.greenhouseId() + ":" + gw.greenhouseId();
 
             alertStore.add(AlertResponse.builder()
                     .id(alertId)
                     .tenantId(gw.tenantId())
                     .greenhouseId(gw.greenhouseId())
-                    .gatewayId(gw.gatewayId())
+                    .gatewayId(gw.greenhouseId())
                     .severity("CRITICAL")
                     .sensorKey("gateway_heartbeat")
-                    .message("Gateway " + gw.gatewayId() + " has not sent a heartbeat in "
+                    .message("Gateway " + gw.greenhouseId() + " has not sent a heartbeat in "
                             + minutesAgo + " minute(s). Last seen: " + gw.lastSeenAt() + ".")
                     .source("backend")
                     .triggeredAt(Instant.now())
@@ -56,7 +56,7 @@ public class GatewayHeartbeatMonitor {
                     .build());
 
             log.warn("Heartbeat miss  tenant={}  greenhouse={}  gateway={}  lastSeen={}  minutesAgo={}",
-                    gw.tenantId(), gw.greenhouseId(), gw.gatewayId(), gw.lastSeenAt(), minutesAgo);
+                    gw.tenantId(), gw.greenhouseId(), gw.greenhouseId(), gw.lastSeenAt(), minutesAgo);
         }
     }
 }
