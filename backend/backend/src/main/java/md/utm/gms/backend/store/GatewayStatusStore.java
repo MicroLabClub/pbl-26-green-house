@@ -25,7 +25,6 @@ public class GatewayStatusStore {
 
     public void upsert(String tenantId,
                        String greenhouseId,
-                       String gatewayId,
                        String status,
                        String firmwareVersion,
                        Instant lastSeenAt) {
@@ -36,13 +35,12 @@ public class GatewayStatusStore {
                 INSERT INTO gms.gateway_status(
                     tenant_id,
                     greenhouse_id,
-                    gateway_id,
                     status,
                     firmware_version,
                     last_seen_at,
                     updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, NOW())
-                ON CONFLICT (tenant_id, greenhouse_id, gateway_id)
+                ) VALUES (?, ?, ?, ?, ?, NOW())
+                ON CONFLICT (tenant_id, greenhouse_id)
                 DO UPDATE SET
                     status           = EXCLUDED.status,
                     firmware_version = COALESCE(EXCLUDED.firmware_version, gms.gateway_status.firmware_version),
@@ -51,7 +49,6 @@ public class GatewayStatusStore {
                 """,
                 tenantId,
                 greenhouseId,
-                gatewayId,
                 normalizeStatus(status),
                 trimToNull(firmwareVersion),
                 Timestamp.from(seenAt)
@@ -66,7 +63,7 @@ public class GatewayStatusStore {
         Instant cutoff = Instant.now().minus(threshold);
         return jdbcTemplate.query(
                 """
-                SELECT tenant_id, greenhouse_id, gateway_id, last_seen_at
+                SELECT tenant_id, greenhouse_id, last_seen_at
                 FROM gms.gateway_status
                 WHERE last_seen_at < ?
                 ORDER BY last_seen_at ASC
@@ -74,7 +71,6 @@ public class GatewayStatusStore {
                 (rs, rowNum) -> new OfflineGateway(
                         rs.getString("tenant_id"),
                         rs.getString("greenhouse_id"),
-                        rs.getString("gateway_id"),
                         rs.getTimestamp("last_seen_at").toInstant()),
                 Timestamp.from(cutoff)
         );
@@ -82,7 +78,6 @@ public class GatewayStatusStore {
 
     public record OfflineGateway(String tenantId,
                                  String greenhouseId,
-                                 String gatewayId,
                                  Instant lastSeenAt) {}
 
     private static String normalizeStatus(String status) {

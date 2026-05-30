@@ -20,7 +20,6 @@ public class GreenhouseStore {
         return new GreenhouseResponse(
                 rs.getString("tenant_id"),
                 rs.getString("greenhouse_id"),
-                rs.getString("gateway_id"),
                 rs.getString("name"),
                 lat,
                 lon,
@@ -41,7 +40,7 @@ public class GreenhouseStore {
     public List<GreenhouseResponse> listByTenant(String tenantId) {
         return jdbcTemplate.query(
                 """
-                SELECT tenant_id, greenhouse_id, gateway_id, name, latitude, longitude, address, description, photo_url, created_at, updated_at
+                SELECT tenant_id, greenhouse_id, name, latitude, longitude, address, description, photo_url, created_at, updated_at
                 FROM gms.greenhouse
                 WHERE tenant_id = ?
                 ORDER BY created_at ASC
@@ -54,7 +53,7 @@ public class GreenhouseStore {
     public Optional<GreenhouseResponse> find(String tenantId, String greenhouseId) {
         List<GreenhouseResponse> matches = jdbcTemplate.query(
                 """
-                SELECT tenant_id, greenhouse_id, gateway_id, name, latitude, longitude, address, description, photo_url, created_at, updated_at
+                SELECT tenant_id, greenhouse_id, name, latitude, longitude, address, description, photo_url, created_at, updated_at
                 FROM gms.greenhouse
                 WHERE tenant_id = ? AND greenhouse_id = ?
                 """,
@@ -81,7 +80,6 @@ public class GreenhouseStore {
 
     public GreenhouseResponse create(String tenantId,
                                      String greenhouseId,
-                                     String gatewayId,
                                      String name,
                                      Double latitude,
                                      Double longitude,
@@ -89,12 +87,11 @@ public class GreenhouseStore {
                                      String description) {
         jdbcTemplate.update(
                 """
-                INSERT INTO gms.greenhouse(tenant_id, greenhouse_id, gateway_id, name, latitude, longitude, address, description)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO gms.greenhouse(tenant_id, greenhouse_id, name, latitude, longitude, address, description)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 tenantId,
                 greenhouseId,
-                gatewayId,
                 name,
                 latitude,
                 longitude,
@@ -109,7 +106,6 @@ public class GreenhouseStore {
     public Optional<GreenhouseResponse> update(String tenantId,
                                                String greenhouseId,
                                                String name,
-                                               String gatewayId,
                                                Double latitude,
                                                Double longitude,
                                                String address,
@@ -118,7 +114,6 @@ public class GreenhouseStore {
                 """
                 UPDATE gms.greenhouse
                 SET name = COALESCE(?, name),
-                    gateway_id = COALESCE(?, gateway_id),
                     latitude = COALESCE(?, latitude),
                     longitude = COALESCE(?, longitude),
                     address = COALESCE(?, address),
@@ -127,7 +122,6 @@ public class GreenhouseStore {
                 WHERE tenant_id = ? AND greenhouse_id = ?
                 """,
                 blankToNull(name),
-                blankToNull(gatewayId),
                 latitude,
                 longitude,
                 blankToNull(address),
