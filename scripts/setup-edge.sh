@@ -3,8 +3,11 @@ set -e
 
 echo "=== GMS Edge Setup Script ==="
 
+# Get the absolute path of the directory this script is in
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
 # Find the downloaded .env file in the scripts folder
-ENV_FILE=$(find scripts -maxdepth 1 -name "*.env" | head -n 1)
+ENV_FILE=$(find "$SCRIPT_DIR" -maxdepth 1 -name "*.env" | head -n 1)
 
 if [ -z "$ENV_FILE" ]; then
     echo "ERROR: No .env file found in the scripts/ folder!"
@@ -23,7 +26,7 @@ if ! command -v tailscale &> /dev/null; then
 fi
 
 if [ -z "$TAILSCALE_AUTH_KEY" ]; then
-    echo "ERROR: TAILSCALE_AUTH_KEY is missing in deploy/.env!"
+    echo "ERROR: TAILSCALE_AUTH_KEY is missing in the downloaded .env file!"
     exit 1
 fi
 
@@ -38,9 +41,11 @@ fi
 
 # 3. Start Docker Compose Stack
 echo "Starting Edge Docker Stack..."
+cd "$SCRIPT_DIR/../deploy"
 # Pass the found .env file explicitly so it doesn't look for deploy/.env
-docker compose --env-file "$ENV_FILE" -f deploy/docker-compose.edge.yml pull
-docker compose --env-file "$ENV_FILE" -f deploy/docker-compose.edge.yml up -d
+docker compose --env-file "$ENV_FILE" -f docker-compose.edge.yml pull
+docker compose --env-file "$ENV_FILE" -f docker-compose.edge.yml up -d
+cd "$SCRIPT_DIR/.."
 
 # 4. Determine Local IP for MQTT Broker
 echo "Determining local IP..."

@@ -1,7 +1,7 @@
 Write-Host "=== GMS Edge Setup Script ===" -ForegroundColor Cyan
 
-# Find the downloaded .env file in the scripts folder
-$envFile = Get-ChildItem -Path "scripts\*.env" -ErrorAction SilentlyContinue | Select-Object -First 1
+# Find the downloaded .env file in the same folder as this script
+$envFile = Get-ChildItem -Path "$PSScriptRoot\*.env" -ErrorAction SilentlyContinue | Select-Object -First 1
 
 if (-Not $envFile) {
     Write-Host "ERROR: No .env file found in the scripts\ folder!" -ForegroundColor Red
@@ -23,7 +23,7 @@ if (-Not (Get-Command tailscale -ErrorAction SilentlyContinue)) {
 }
 
 if (-Not $envVars.ContainsKey("TAILSCALE_AUTH_KEY")) {
-    Write-Host "ERROR: TAILSCALE_AUTH_KEY is missing in deploy\.env!" -ForegroundColor Red
+    Write-Host "ERROR: TAILSCALE_AUTH_KEY is missing in your downloaded .env file!" -ForegroundColor Red
     exit 1
 }
 
@@ -41,9 +41,11 @@ if (-Not (Get-Command docker -ErrorAction SilentlyContinue)) {
 
 # 3. Start Docker Compose Stack
 Write-Host "Starting Edge Docker Stack..." -ForegroundColor Yellow
-# Pass the found .env file explicitly
-docker compose --env-file "$($envFile.FullName)" -f deploy/docker-compose.edge.yml pull
-docker compose --env-file "$($envFile.FullName)" -f deploy/docker-compose.edge.yml up -d
+$deployDir = Join-Path $PSScriptRoot "..\deploy"
+Set-Location $deployDir
+docker compose --env-file "$($envFile.FullName)" -f docker-compose.edge.yml pull
+docker compose --env-file "$($envFile.FullName)" -f docker-compose.edge.yml up -d
+Set-Location ".."
 
 # 4. Determine Local IP for MQTT Broker
 Write-Host "Determining local IP..." -ForegroundColor Yellow
