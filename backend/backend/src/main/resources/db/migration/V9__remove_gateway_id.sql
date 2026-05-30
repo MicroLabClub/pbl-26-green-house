@@ -29,7 +29,7 @@ ALTER TABLE gms.alert_event
     DROP COLUMN IF EXISTS gateway_id;
 ALTER TABLE gms.alert_event
     ADD CONSTRAINT alert_event_pkey
-    PRIMARY KEY (alert_id);
+    PRIMARY KEY (id);
 
 -- threshold_apply_status
 ALTER TABLE gms.threshold_apply_status
