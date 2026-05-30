@@ -6,7 +6,7 @@ if (-Not (Get-Command pio -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-Set-Location "firmware\src\portenta"
+Set-Location "$PSScriptRoot\..\firmware\src\portenta"
 Write-Host "Flashing firmware to Portenta H7..." -ForegroundColor Yellow
 pio run -e portenta_h7_m7 -t upload
 Write-Host "=== Upload Complete ===" -ForegroundColor Cyan
