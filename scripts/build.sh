@@ -9,6 +9,10 @@ if ! command -v pio &> /dev/null; then
     exit 1
 fi
 
+ORIGINAL_DIR=$(pwd)
+# Ensure we always return to the original directory even if pio fails
+trap 'cd "$ORIGINAL_DIR"' EXIT
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd "$SCRIPT_DIR/../firmware/src/portenta"
 echo "Building firmware for Portenta H7..."
