@@ -1,8 +1,13 @@
 import os
 
-Import("env")
+# SCons injects 'Import' and 'env' dynamically at runtime.
+# This dummy block pacifies IDE linters (Pyright/Pylance/Pyre) without affecting PlatformIO.
+try:
+    Import("env")  # type: ignore
+except NameError:
+    env = None  # type: ignore
 
-env_file = os.path.join(env.get("PROJECT_DIR"), ".env")
+env_file = os.path.join(env.get("PROJECT_DIR"), ".env")  # type: ignore
 
 if os.path.isfile(env_file):
     print(f"Loading environment variables from {env_file}")
