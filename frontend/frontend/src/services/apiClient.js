@@ -49,11 +49,22 @@ export async function apiRequest(path, options = {}) {
   const parsed = await parseResponseBody(response);
 
   if (!response.ok) {
-    const message =
-      (parsed && typeof parsed === 'object' && 'message' in parsed && parsed.message) ||
-      (parsed && typeof parsed === 'object' && 'error' in parsed && parsed.error) ||
-      (typeof parsed === 'string' && parsed) ||
-      `Request failed with status ${response.status}`;
+    let message = `Request failed with status ${response.status}`;
+    
+    // Check if the parsed string looks like an HTML document
+    if (typeof parsed === 'string' && parsed.trim().toLowerCase().startsWith('<html')) {
+        if (response.status === 413) message = "File exceeds the maximum allowed size (50MB).";
+        else if (response.status === 502) message = "Bad Gateway: The server is temporarily unreachable.";
+        else if (response.status === 503) message = "Service Unavailable: The server is overloaded or down for maintenance.";
+        else if (response.status === 504) message = "Gateway Timeout: The server took too long to respond.";
+        else message = `An unexpected server error occurred (Status ${response.status}).`;
+    } else {
+        message =
+            (parsed && typeof parsed === 'object' && 'message' in parsed && parsed.message) ||
+            (parsed && typeof parsed === 'object' && 'error' in parsed && parsed.error) ||
+            (typeof parsed === 'string' && parsed) ||
+            message;
+    }
 
     throw new ApiError(String(message), response.status, parsed);
   }
