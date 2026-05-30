@@ -7,7 +7,7 @@ import java.util.Map;
 public record GreenhouseGatewayConfigResponse(
         @JsonProperty("tenant_id") String tenantId,
         @JsonProperty("greenhouse_id") String greenhouseId,
-        @JsonProperty("gateway_id") String gatewayId,
-        Map<String, String> env
+        Map<String, String> env,
+        @JsonProperty("tailscale_auth_key") String tailscaleAuthKey
 ) {
 }

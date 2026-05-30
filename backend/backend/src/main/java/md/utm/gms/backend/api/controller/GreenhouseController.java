@@ -7,6 +7,7 @@ import md.utm.gms.backend.api.dto.GreenhouseResponse;
 import md.utm.gms.backend.api.dto.GreenhouseUpdateRequest;
 import md.utm.gms.backend.auth.AuthContext;
 import md.utm.gms.backend.store.GreenhouseStore;
+import md.utm.gms.backend.api.service.TailscaleClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -39,10 +40,13 @@ public class GreenhouseController {
 
     private final GreenhouseStore greenhouseStore;
     private final Path uploadBaseDir;
+    private final TailscaleClient tailscaleClient;
 
     public GreenhouseController(GreenhouseStore greenhouseStore,
+                                TailscaleClient tailscaleClient,
                                 @Value("${gms.upload.base-dir:uploads}") String uploadBaseDir) {
         this.greenhouseStore = greenhouseStore;
+        this.tailscaleClient = tailscaleClient;
         this.uploadBaseDir = Paths.get(uploadBaseDir);
     }
 
@@ -69,16 +73,11 @@ public class GreenhouseController {
             return ResponseEntity.badRequest().body(Map.of("error", "greenhouse_id already exists."));
         }
 
-        String gatewayId = sanitizeIdentifier(request.gatewayId());
-        if (gatewayId == null) {
-            gatewayId = greenhouseId;
-        }
-
         try {
-            GreenhouseResponse created = greenhouseStore.create(tenantId, greenhouseId, gatewayId, request.name().trim(), request.latitude(), request.longitude(), request.address(), request.description());
+            GreenhouseResponse created = greenhouseStore.create(tenantId, greenhouseId, request.name().trim(), request.latitude(), request.longitude(), request.address(), request.description());
             return ResponseEntity.ok(created);
         } catch (DataIntegrityViolationException ex) {
-            return ResponseEntity.badRequest().body(Map.of("error", "gateway_id is already assigned in this tenant."));
+            return ResponseEntity.badRequest().body(Map.of("error", "Error creating greenhouse."));
         }
     }
 
@@ -101,16 +100,15 @@ public class GreenhouseController {
             return ResponseEntity.badRequest().body(Map.of("error", "No fields provided for update."));
         }
 
-        String normalizedGatewayId = sanitizeIdentifier(request.gatewayId());
         String normalizedName = request.name() != null ? request.name().trim() : null;
 
         try {
             return greenhouseStore
-                    .update(tenantId, greenhouseId, normalizedName, normalizedGatewayId, request.latitude(), request.longitude(), request.address(), request.description())
+                    .update(tenantId, greenhouseId, normalizedName, request.latitude(), request.longitude(), request.address(), request.description())
                     .map(ResponseEntity::ok)
                     .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (DataIntegrityViolationException ex) {
-            return ResponseEntity.badRequest().body(Map.of("error", "gateway_id is already assigned in this tenant."));
+            return ResponseEntity.badRequest().body(Map.of("error", "Error updating greenhouse."));
         }
     }
 
@@ -203,15 +201,16 @@ public class GreenhouseController {
                     Map<String, String> env = new LinkedHashMap<>();
                     env.put("TENANT_ID", g.tenantId());
                     env.put("GREENHOUSE_ID", g.greenhouseId());
-                    env.put("GATEWAY_ID", g.gatewayId());
                     env.put("CLOUD_BROKER_HOST", "<your-mqtt-broker-host>");
                     env.put("CLOUD_BROKER_PORT", "8883");
+
+                    String tailscaleKey = tailscaleClient.generateAuthKey(g.greenhouseId());
 
                     return ResponseEntity.ok(new GreenhouseGatewayConfigResponse(
                             g.tenantId(),
                             g.greenhouseId(),
-                            g.gatewayId(),
-                            env
+                            env,
+                            tailscaleKey
                     ));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
