@@ -1,0 +1,73 @@
+services:
+  local_broker:
+    image: eclipse-mosquitto:2.0
+    container_name: gms-edge-local-broker
+    command:
+      - /bin/sh
+      - -c
+      - >
+        printf 'listener 18831\nallow_anonymous true\npersistence true\npersistence_location /mosquitto/data/\nlog_dest file /mosquitto/log/mosquitto.log\n'
+        > /tmp/mosquitto.conf
+        && exec mosquitto -c /tmp/mosquitto.conf
+    network_mode: "host"
+    volumes:
+      - local_broker_data:/mosquitto/data
+      - local_broker_log:/mosquitto/log
+    restart: unless-stopped
+
+  edge_engine:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-your-org}/gms-edge-engine:latest
+    container_name: gms-edge-engine
+    depends_on:
+      - local_broker
+    volumes:
+      - edge_database:/app/data
+    restart: unless-stopped
+    network_mode: "host"
+    environment:
+      # Connect to the local broker to read from physical Portenta zones
+      - MQTT_HOST=localhost
+      - MQTT_PORT=18831
+      
+      # Connect to the external cloud broker to sync telemetry and receive thresholds
+      # For testing on the same machine, use your machine's local IP (e.g. 192.168.1.X)
+      # For production, this should be the public IP or domain of the cloud server.
+      - CLOUD_BROKER_HOST=${CLOUD_BROKER_HOST:-192.168.1.100}
+      - CLOUD_BROKER_PORT=${CLOUD_BROKER_PORT:-1883}
+      
+      - GREENHOUSE_ID=${GREENHOUSE_ID:-gh-001}
+
+  # ==============================================================================
+  # Simulator Stack (Optional)
+  # Run this by adding `--profile simulator` to your docker-compose up command.
+  # Example: docker-compose -f docker-compose.edge.yml --profile simulator up -d
+  # ==============================================================================
+  simulator_hw:
+    profiles: ["simulator"]
+    build:
+      context: ../firmware/src/gateway/simulator-hw
+      dockerfile: Dockerfile
+    container_name: gms-edge-simulator
+    command: sh -lc "bun install --ignore-scripts && bun run dev --host 0.0.0.0 --port 4173"
+    depends_on:
+      - local_broker
+    network_mode: "host"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=4173
+      - MQTT_HOST=localhost
+      - MQTT_PORT=18831
+      - GREENHOUSE_ID=${GREENHOUSE_ID:-gh-001}
+      - PUBLISH_INTERVAL_MS=10000
+      - AUTO_CONNECT=true
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ../firmware/src/gateway/simulator-hw:/app:z
+      - simulator_hw_data:/app/sim-data
+    restart: unless-stopped
+
+volumes:
+  edge_database:
+  local_broker_data:
+  local_broker_log:
+  simulator_hw_data:

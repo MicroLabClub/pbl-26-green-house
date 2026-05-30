@@ -1,0 +1,84 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: gms-cloud-timescaledb
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gms_backend
+      POSTGRES_USER: gms
+      POSTGRES_PASSWORD: gms
+    ports:
+      - "5432:5432" # Optional: expose if you want to connect with pgAdmin
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U gms -d gms_backend" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  cloud_broker:
+    image: eclipse-mosquitto:2.0
+    container_name: gms-cloud-broker
+    command:
+      - /bin/sh
+      - -c
+      - >
+        printf 'listener 1883\nallow_anonymous true\npersistence true\npersistence_location /mosquitto/data/\nlog_dest file /mosquitto/log/mosquitto.log\n' > /tmp/mosquitto.conf && exec mosquitto -c /tmp/mosquitto.conf
+    ports:
+      - "1883:1883"
+    volumes:
+      - cloud_broker_data:/mosquitto/data
+      - cloud_broker_log:/mosquitto/log
+    restart: unless-stopped
+
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-your-org}/gms-backend:latest
+    container_name: gms-cloud-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://timescaledb:5432/gms_backend
+      SPRING_DATASOURCE_USERNAME: gms
+      SPRING_DATASOURCE_PASSWORD: gms
+      GMS_TAILSCALE_API_KEY: ${GMS_TAILSCALE_API_KEY}
+      GMS_TAILSCALE_TAILNET: ${GMS_TAILSCALE_TAILNET}
+    command: >
+      java -jar app.jar --gms.mqtt.broker-url=tcp://cloud_broker:1883
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      cloud_broker:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-your-org}/gms-frontend:latest
+    container_name: gms-cloud-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: gms-watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: gms-cloudflared
+    restart: unless-stopped
+    # This will create a quick tunnel and output a public URL to the logs.
+    # To view the URL, run: docker logs gms-cloudflared
+    # Alternatively, you can use a TUNNEL_TOKEN for a persistent domain.
+    command: tunnel --url http://frontend:80
+
+volumes:
+  timescaledb_data:
+  cloud_broker_data:
+  cloud_broker_log:
