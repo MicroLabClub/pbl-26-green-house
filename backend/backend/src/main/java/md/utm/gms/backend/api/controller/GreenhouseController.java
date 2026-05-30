@@ -41,13 +41,16 @@ public class GreenhouseController {
     private final GreenhouseStore greenhouseStore;
     private final Path uploadBaseDir;
     private final TailscaleClient tailscaleClient;
+    private final String publicMqttHost;
 
     public GreenhouseController(GreenhouseStore greenhouseStore,
                                 TailscaleClient tailscaleClient,
-                                @Value("${gms.upload.base-dir:uploads}") String uploadBaseDir) {
+                                @Value("${gms.upload.base-dir:uploads}") String uploadBaseDir,
+                                @Value("${gms.public-mqtt-host:<your-mqtt-broker-host>}") String publicMqttHost) {
         this.greenhouseStore = greenhouseStore;
         this.tailscaleClient = tailscaleClient;
         this.uploadBaseDir = Paths.get(uploadBaseDir);
+        this.publicMqttHost = publicMqttHost;
     }
 
     @GetMapping
@@ -201,7 +204,7 @@ public class GreenhouseController {
                     Map<String, String> env = new LinkedHashMap<>();
                     env.put("TENANT_ID", g.tenantId());
                     env.put("GREENHOUSE_ID", g.greenhouseId());
-                    env.put("CLOUD_BROKER_HOST", "<your-mqtt-broker-host>");
+                    env.put("CLOUD_BROKER_HOST", publicMqttHost);
                     env.put("CLOUD_BROKER_PORT", "8883");
 
                     String tailscaleKey = tailscaleClient.generateAuthKey(g.greenhouseId());

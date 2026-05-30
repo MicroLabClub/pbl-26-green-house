@@ -46,6 +46,7 @@ services:
       GMS_MQTT_TLS_CA_CERT_PATH: ""
       GMS_MQTT_TLS_CLIENT_CERT_PATH: ""
       GMS_MQTT_TLS_KEY_PASSWORD: ""
+      GMS_PUBLIC_MQTT_HOST: ${GMS_PUBLIC_MQTT_HOST:-<your-mqtt-broker-host>}
       JAVA_TOOL_OPTIONS: "--add-opens=java.base/java.net=ALL-UNNAMED"
     command: --gms.mqtt.broker-url=tcp://cloud_broker:1883
     depends_on:
