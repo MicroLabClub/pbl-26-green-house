@@ -19,7 +19,11 @@ const mono  = { fontFamily: "'Source Code Pro', monospace" };
 
 function buildEnvText(config) {
   if (!config?.env || typeof config.env !== 'object') return '';
-  return Object.entries(config.env).map(([k, v]) => `${k}=${v}`).join('\n');
+  const lines = Object.entries(config.env).map(([k, v]) => `${k}=${v}`);
+  if (config.tailscale_auth_key) {
+    lines.push(`TAILSCALE_AUTH_KEY=${config.tailscale_auth_key}`);
+  }
+  return lines.join('\n');
 }
 
 /* ── Icons ──────────────────────────────────────────────────────────────── */
@@ -64,7 +68,6 @@ function GearIcon() {
 function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
   const [name,         setName]         = useState('');
   const [greenhouseId, setGreenhouseId] = useState('');
-  const [gatewayId,    setGatewayId]    = useState('');
   const [location,    setLocation]    = useState(null);
   const [photoFile,   setPhotoFile]   = useState(null);
   const [previewUrl,  setPreviewUrl]  = useState(null);
@@ -86,14 +89,12 @@ function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
     await onSubmit({
       name:         name.trim(),
       greenhouseId: greenhouseId.trim() || undefined,
-      gatewayId:    gatewayId.trim()    || undefined,
       location,
       photoFile,
       description:  description.trim() || undefined,
     });
     setName('');
     setGreenhouseId('');
-    setGatewayId('');
     setLocation(null);
     setPhotoFile(null);
     setPreviewUrl(null);
@@ -165,21 +166,6 @@ function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
                   value={greenhouseId}
                   onChange={(e) => setGreenhouseId(e.target.value)}
                   placeholder="e.g. north-wing"
-                  className="h-12 rounded-xl border border-border bg-bg px-4 text-sm text-ink outline-none focus:border-accent transition-colors"
-                  style={mono}
-                />
-              </label>
-
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted">
-                  Gateway ID{' '}
-                  <span className="normal-case tracking-normal font-normal text-muted/70">(optional)</span>
-                </span>
-                <input
-                  type="text"
-                  value={gatewayId}
-                  onChange={(e) => setGatewayId(e.target.value)}
-                  placeholder="e.g. gw-001"
                   className="h-12 rounded-xl border border-border bg-bg px-4 text-sm text-ink outline-none focus:border-accent transition-colors"
                   style={mono}
                 />
@@ -307,11 +293,6 @@ function GreenhouseCard({ greenhouse, photo, description, onOpen, onDelete, onRe
 
       {/* Tags */}
       <div className="flex flex-wrap items-center gap-2 mt-2.5">
-        {greenhouse.gateway_id && (
-          <span className="bg-accent/20 text-accent text-[11px] px-2.5 py-0.5 rounded-full" style={mono}>
-            {greenhouse.gateway_id}
-          </span>
-        )}
         <span className="text-[11px] text-muted" style={mono}>{greenhouse.greenhouse_id}</span>
       </div>
 
@@ -324,8 +305,21 @@ function GreenhouseCard({ greenhouse, photo, description, onOpen, onDelete, onRe
       {showConfig && (
         <div className="mt-4 rounded-xl border border-border/60 bg-surface px-4 py-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Gateway Config</span>
-            <button onClick={onCopyConfig} className="text-xs text-accent hover:text-soil transition-colors font-medium">Copy</button>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted">Gateway Config (.env)</span>
+            <div className="flex gap-2">
+              <button onClick={onCopyConfig} className="text-xs text-accent hover:text-soil transition-colors font-medium">Copy</button>
+              <button onClick={() => {
+                const text = buildEnvText(config);
+                if (!text) return;
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `gh-${greenhouse.greenhouse_id}.env`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }} className="text-xs text-accent hover:text-soil transition-colors font-medium">Download</button>
+            </div>
           </div>
           <pre className="whitespace-pre-wrap break-all text-[11px] text-accent" style={mono}>
             {buildEnvText(config) || 'Loading…'}
@@ -435,12 +429,11 @@ export default function GreenhouseListPage({ profile, onLogout, onOpenGreenhouse
     }
   }, [refresh]);
 
-  const handleCreate = async ({ name, greenhouseId, gatewayId, location, photoFile, description }) => {
+  const handleCreate = async ({ name, greenhouseId, location, photoFile, description }) => {
     await runAction(async () => {
       const created = await createGreenhouse({
         name,
         greenhouseId,
-        gatewayId,
         latitude:    location?.lat  ?? undefined,
         longitude:   location?.lng  ?? undefined,
         description: description    || undefined,
