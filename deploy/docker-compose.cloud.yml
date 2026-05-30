@@ -46,8 +46,8 @@ services:
       GMS_MQTT_TLS_CA_CERT_PATH: ""
       GMS_MQTT_TLS_CLIENT_CERT_PATH: ""
       GMS_MQTT_TLS_KEY_PASSWORD: ""
-    command: >
-      java -jar app.jar --gms.mqtt.broker-url=tcp://cloud_broker:1883
+      JAVA_TOOL_OPTIONS: "--add-opens=java.base/java.net=ALL-UNNAMED"
+    command: --gms.mqtt.broker-url=tcp://cloud_broker:1883
     depends_on:
       timescaledb:
         condition: service_healthy
