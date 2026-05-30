@@ -5,6 +5,10 @@
 **/**/.DS_Store
 **/**/node_modules/
 **/**/dist/
-**/**/workspace.local/**\n.env
+**/**/workspace.local/
 **/**/.env.*
 **/**/.env
+.codegraph/
+*.pid
+.idea/
+**/**/.pid
