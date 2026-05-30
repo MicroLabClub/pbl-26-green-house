@@ -205,7 +205,7 @@ public class GreenhouseController {
                     env.put("TENANT_ID", g.tenantId());
                     env.put("GREENHOUSE_ID", g.greenhouseId());
                     env.put("CLOUD_BROKER_HOST", publicMqttHost);
-                    env.put("CLOUD_BROKER_PORT", "8883");
+                    env.put("CLOUD_BROKER_PORT", "1883");
 
                     String tailscaleKey = tailscaleClient.generateAuthKey(g.greenhouseId());
 
