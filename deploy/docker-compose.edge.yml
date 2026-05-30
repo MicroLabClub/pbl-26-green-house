@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   edge_engine:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-your-org}/gms-edge-engine:latest
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-microlabclub}/gms-edge-engine:latest
     container_name: gms-edge-engine
     depends_on:
       - local_broker
