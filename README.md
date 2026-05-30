@@ -45,20 +45,55 @@ The Cloud environment hosts the centralized Database (TimescaleDB), Backend API,
 
 ### 2. Edge Environment (The Greenhouse Mini-PC)
 
-The Edge environment runs the local MQTT broker (for the Portenta sensors) and the Edge Engine.
+The Edge environment runs the local MQTT broker (for the Portenta sensors) and the Edge Engine. We have provided automation scripts to make setting up the Edge PC and flashing the Arduino firmware a one-click process.
 
-1. Add a new Greenhouse in your Cloud Dashboard and click **Download .env**. This will securely bundle your `GREENHOUSE_ID` and a dynamically generated `TAILSCALE_AUTH_KEY`.
-2. On the greenhouse mini-PC, place this `.env` file in the root of the project (or alongside your edge docker compose stack).
-3. Start the edge engine:
-   ```bash
-   docker-compose -f deploy/docker-compose.edge.yml up -d
+#### Step 1: Configure the Gateway
+1. Add a new Greenhouse in your Cloud Dashboard to generate your Gateway credentials.
+2. On the edge mini-PC, clone this repository.
+3. Inside the `deploy/` folder, create a `.env` file and paste the credentials from the Web UI. Ensure you also add your GitHub username:
+   ```env
+   GITHUB_REPOSITORY_OWNER=your-github-username-or-org
+   TENANT_ID=...
+   GREENHOUSE_ID=...
+   CLOUD_BROKER_HOST=...
+   CLOUD_BROKER_PORT=8883
+   TAILSCALE_AUTH_KEY=tskey-auth-...
    ```
-   *Note: The edge stack utilizes `network_mode: host` to automatically leverage the host machine's Tailscale connection, creating a secure, zero-config mesh network to the Cloud Broker!*
+
+#### Step 2: Run the Setup Script
+Run the automated setup script for your operating system from the root of the project:
+
+**Mac/Linux:**
+```bash
+./scripts/setup-edge.sh
+```
+
+**Windows (PowerShell):**
+*(Note: You may need to run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` first if scripts are disabled on your PC).*
+```powershell
+.\scripts\setup-edge.ps1
+```
+
+**What the script does:**
+- Installs Tailscale, Docker, and PlatformIO if they are missing.
+- Connects your PC to the Tailscale mesh network using your Auth Key.
+- Starts the Edge Docker stack.
+- Determines your local Wi-Fi IP address.
+- Generates a pre-configured `firmware/src/portenta/.env` file with a unique `DEVICE_ID`.
+
+#### Step 3: Flash the Firmware
+1. Open the generated `firmware/src/portenta/.env` file and enter your `WIFI_SSID` and `WIFI_PASS`.
+2. Connect your Arduino Portenta via USB.
+3. Compile and upload the firmware using the provided scripts:
+   - **Mac/Linux:** `./scripts/build.sh` and `./scripts/upload.sh`
+   - **Windows:** `.\scripts\build.ps1` and `.\scripts\upload.ps1`
+
+*Note: The edge stack utilizes `network_mode: host` to automatically leverage the host machine's Tailscale connection, creating a secure, zero-config mesh network to the Cloud Broker!*
 
 **Simulator Mode:**
-If you want to test the edge environment without real hardware (Arduino Portenta), you can run the simulator profile. This will start a virtual sensor node that sends mock data to the edge engine:
+If you want to test the edge environment without real hardware (Arduino Portenta), you can run the simulator profile:
 ```bash
-docker-compose -f docker-compose.edge.yml --profile simulator up -d
+docker-compose -f deploy/docker-compose.edge.yml --profile simulator up -d
 ```
 
 ### 3. Continuous Deployment (Auto-Updates)
