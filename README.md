@@ -17,14 +17,19 @@ This project separates the global backend infrastructure (Cloud) from the local 
 
 The Cloud environment hosts the centralized Database (TimescaleDB), Backend API, Frontend Dashboard, and the global MQTT broker.
 
-1. Navigate to the deployment folder:
+1. Navigate to the deployment folder and create a `.env` file:
    ```bash
    cd deploy
    ```
-2. Start the cloud infrastructure:
+2. Populate the `.env` file with your configuration and secrets. This is required for GitHub Container Registry authentication (for Watchtower auto-updates) and Tailscale secure mesh networking:
+   ```env
+   GITHUB_REPOSITORY_OWNER=your-github-username-or-org
+   GHCR_PAT=your_github_personal_access_token_with_read_packages_scope
+   GMS_TAILSCALE_API_KEY=your_tailscale_api_key
+   GMS_TAILSCALE_TAILNET=your_tailnet_name (e.g. maxnoragami.github)
+   ```
+3. Start the cloud infrastructure:
    ```bash
-   # Set the GITHUB_REPOSITORY_OWNER to the GitHub user/organization where this is hosted
-   export GITHUB_REPOSITORY_OWNER=your-org-name
    docker-compose -f docker-compose.cloud.yml up -d
    ```
 3. **Accessing the Cloud:**
@@ -42,19 +47,13 @@ The Cloud environment hosts the centralized Database (TimescaleDB), Backend API,
 
 The Edge environment runs the local MQTT broker (for the Portenta sensors) and the Edge Engine.
 
-1. On the greenhouse mini-PC, navigate to the deployment folder:
-   ```bash
-   cd deploy
-   ```
-2. Set the environment variable for your Cloud Broker. This should be the IP address of your Cloud Server (or domain if you set one up). If testing locally on the same machine, use your machine's LAN IP address (e.g., 192.168.x.x):
-   ```bash
-   export CLOUD_BROKER_HOST=192.168.1.100
-   export GITHUB_REPOSITORY_OWNER=your-org-name
-   ```
+1. Add a new Greenhouse in your Cloud Dashboard and click **Download .env**. This will securely bundle your `GREENHOUSE_ID` and a dynamically generated `TAILSCALE_AUTH_KEY`.
+2. On the greenhouse mini-PC, place this `.env` file in the root of the project (or alongside your edge docker compose stack).
 3. Start the edge engine:
    ```bash
-   docker-compose -f docker-compose.edge.yml up -d
+   docker-compose -f deploy/docker-compose.edge.yml up -d
    ```
+   *Note: The edge stack utilizes `network_mode: host` to automatically leverage the host machine's Tailscale connection, creating a secure, zero-config mesh network to the Cloud Broker!*
 
 **Simulator Mode:**
 If you want to test the edge environment without real hardware (Arduino Portenta), you can run the simulator profile. This will start a virtual sensor node that sends mock data to the edge engine:
@@ -66,4 +65,4 @@ docker-compose -f docker-compose.edge.yml --profile simulator up -d
 
 This repository is configured with a **GitHub Actions** workflow (`.github/workflows/docker-build.yml`). Whenever you push code to the `main` branch, the workflow will automatically build new Docker images for the Frontend, Backend, and Edge Engine, and push them to the GitHub Container Registry (GHCR).
 
-The `docker-compose.cloud.yml` includes a **Watchtower** container. It silently monitors GHCR in the background. When it detects that a new image has been uploaded by GitHub Actions, it will gracefully download the update and restart the affected containers for you automatically!
+The `docker-compose.cloud.yml` includes a **Watchtower** container. It silently monitors GHCR in the background using the `GHCR_PAT` you provided in the `.env` file. When it detects that a new image has been uploaded by GitHub Actions, it will gracefully download the update and restart the affected containers for you automatically!
