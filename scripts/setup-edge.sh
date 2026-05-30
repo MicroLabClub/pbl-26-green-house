@@ -67,7 +67,7 @@ if ! command -v pio &> /dev/null; then
 fi
 
 # 6. Generate Firmware .env
-FW_ENV="firmware/src/portenta/.env"
+FW_ENV="$SCRIPT_DIR/../firmware/src/portenta/.env"
 echo "Generating Firmware .env at $FW_ENV..."
 
 # Generate a random 6-character hex string for the device ID

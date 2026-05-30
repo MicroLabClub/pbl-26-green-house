@@ -18,8 +18,16 @@ Get-Content $envFile.FullName | Where-Object { $_ -match "^([^#=]+)=(.*)$" } | F
 
 # 1. Install Tailscale if missing
 if (-Not (Get-Command tailscale -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing Tailscale..." -ForegroundColor Yellow
-    winget install Tailscale.Tailscale -e --accept-package-agreements --accept-source-agreements
+    Write-Host "Tailscale not found." -ForegroundColor Yellow
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Write-Host "Installing Tailscale via winget..." -ForegroundColor Yellow
+        winget install Tailscale.Tailscale -e --accept-package-agreements --accept-source-agreements
+        Write-Host "Installation complete. Please close this PowerShell window, open a new one, and run this script again to reload PATH!" -ForegroundColor Red
+        exit 1
+    } else {
+        Write-Host "ERROR: winget is not installed. Please download and install Tailscale manually from https://tailscale.com/" -ForegroundColor Red
+        exit 1
+    }
 }
 
 if (-Not $envVars.ContainsKey("TAILSCALE_AUTH_KEY")) {
@@ -33,9 +41,25 @@ tailscale up --authkey=$authKey --reset
 
 # 2. Check Docker
 if (-Not (Get-Command docker -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing Docker Desktop..." -ForegroundColor Yellow
-    winget install Docker.DockerDesktop -e --accept-package-agreements --accept-source-agreements
-    Write-Host "Please restart your computer and run this script again." -ForegroundColor Red
+    Write-Host "Docker not found." -ForegroundColor Yellow
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Write-Host "Installing Docker Desktop via winget..." -ForegroundColor Yellow
+        winget install Docker.DockerDesktop -e --accept-package-agreements --accept-source-agreements
+        Write-Host "Installation complete. Please restart your computer and run this script again!" -ForegroundColor Red
+        exit 1
+    } else {
+        Write-Host "ERROR: winget is not installed. Please download and install Docker Desktop manually." -ForegroundColor Red
+        exit 1
+    }
+}
+
+# Verify Docker daemon is running
+try {
+    $null = docker info 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "Docker is not running" }
+} catch {
+    Write-Host "ERROR: Docker Desktop is installed but the Docker Engine is not running." -ForegroundColor Red
+    Write-Host "Please start Docker Desktop, wait for it to initialize, and run this script again." -ForegroundColor Yellow
     exit 1
 }
 
@@ -45,7 +69,7 @@ $deployDir = Join-Path $PSScriptRoot "..\deploy"
 Set-Location $deployDir
 docker compose --env-file "$($envFile.FullName)" -f docker-compose.edge.yml pull
 docker compose --env-file "$($envFile.FullName)" -f docker-compose.edge.yml up -d
-Set-Location ".."
+Set-Location $PSScriptRoot
 
 # 4. Determine Local IP for MQTT Broker
 Write-Host "Determining local IP..." -ForegroundColor Yellow
@@ -60,16 +84,22 @@ Write-Host "Local IP found: $localIp" -ForegroundColor Green
 if (-Not (Get-Command pio -ErrorAction SilentlyContinue)) {
     Write-Host "PlatformIO not found. Attempting to install via pip..." -ForegroundColor Yellow
     if (-Not (Get-Command pip -ErrorAction SilentlyContinue)) {
-        Write-Host "Installing Python..." -ForegroundColor Yellow
-        winget install Python.Python.3.11 -e --accept-package-agreements --accept-source-agreements
-        Write-Host "Please restart your terminal to reload PATH and run this script again to install PlatformIO." -ForegroundColor Red
+        if (Get-Command winget -ErrorAction SilentlyContinue) {
+            Write-Host "Installing Python..." -ForegroundColor Yellow
+            winget install Python.Python.3.11 -e --accept-package-agreements --accept-source-agreements
+            Write-Host "Please restart your terminal to reload PATH and run this script again to install PlatformIO." -ForegroundColor Red
+            exit 1
+        } else {
+            Write-Host "ERROR: Python/pip is not installed. Please install Python manually." -ForegroundColor Red
+            exit 1
+        }
     } else {
         pip install -U platformio
     }
 }
 
 # 6. Generate Firmware .env
-$fwEnv = "firmware\src\portenta\.env"
+$fwEnv = Join-Path $PSScriptRoot "..\firmware\src\portenta\.env"
 Write-Host "Generating Firmware .env at $fwEnv..." -ForegroundColor Yellow
 
 $uniqueId = -join ((48..57) + (97..102) | Get-Random -Count 6 | % {[char]$_})
