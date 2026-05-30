@@ -42,15 +42,21 @@ public class GreenhouseController {
     private final Path uploadBaseDir;
     private final TailscaleClient tailscaleClient;
     private final String publicMqttHost;
+    private final String githubRepositoryOwner;
+    private final String ghcrPat;
 
     public GreenhouseController(GreenhouseStore greenhouseStore,
                                 TailscaleClient tailscaleClient,
                                 @Value("${gms.upload.base-dir:uploads}") String uploadBaseDir,
-                                @Value("${gms.public-mqtt-host:<your-mqtt-broker-host>}") String publicMqttHost) {
+                                @Value("${gms.public-mqtt-host:<your-mqtt-broker-host>}") String publicMqttHost,
+                                @Value("${GITHUB_REPOSITORY_OWNER:your-org}") String githubRepositoryOwner,
+                                @Value("${GHCR_PAT:}") String ghcrPat) {
         this.greenhouseStore = greenhouseStore;
         this.tailscaleClient = tailscaleClient;
         this.uploadBaseDir = Paths.get(uploadBaseDir);
         this.publicMqttHost = publicMqttHost;
+        this.githubRepositoryOwner = githubRepositoryOwner;
+        this.ghcrPat = ghcrPat;
     }
 
     @GetMapping
@@ -202,6 +208,10 @@ public class GreenhouseController {
         return greenhouseStore.find(tenantId, greenhouseId)
                 .map(g -> {
                     Map<String, String> env = new LinkedHashMap<>();
+                    env.put("GITHUB_REPOSITORY_OWNER", githubRepositoryOwner);
+                    if (ghcrPat != null && !ghcrPat.isBlank()) {
+                        env.put("GHCR_PAT", ghcrPat);
+                    }
                     env.put("TENANT_ID", g.tenantId());
                     env.put("GREENHOUSE_ID", g.greenhouseId());
                     env.put("CLOUD_BROKER_HOST", publicMqttHost);

@@ -63,7 +63,13 @@ try {
     exit 1
 }
 
-# 3. Start Docker Compose Stack
+# 3. Authenticate with GHCR if PAT is provided
+if ($envVars.ContainsKey("GHCR_PAT") -and $envVars.ContainsKey("GITHUB_REPOSITORY_OWNER")) {
+    Write-Host "Authenticating with GitHub Container Registry..." -ForegroundColor Yellow
+    $envVars["GHCR_PAT"] | docker login ghcr.io -u $envVars["GITHUB_REPOSITORY_OWNER"] --password-stdin
+}
+
+# 4. Start Docker Compose Stack
 Write-Host "Starting Edge Docker Stack..." -ForegroundColor Yellow
 $deployDir = Join-Path $PSScriptRoot "..\deploy"
 Set-Location $deployDir
