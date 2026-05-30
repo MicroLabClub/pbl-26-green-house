@@ -65,7 +65,9 @@ public class SecurityConfig {
                 "http://localhost:*",
                 "http://127.0.0.1:*",
                 "https://*.ngrok-free.app",
-                "https://*.ngrok.app"
+                "https://*.ngrok.app",
+                "https://*.trycloudflare.com",
+                "https://*.pages.dev"
         ));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
