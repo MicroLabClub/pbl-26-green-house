@@ -43,6 +43,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: gms
       GMS_TAILSCALE_API_KEY: ${GMS_TAILSCALE_API_KEY}
       GMS_TAILSCALE_TAILNET: ${GMS_TAILSCALE_TAILNET}
+      GMS_MQTT_TLS_CA_CERT_PATH: ""
+      GMS_MQTT_TLS_CLIENT_CERT_PATH: ""
+      GMS_MQTT_TLS_KEY_PASSWORD: ""
     command: >
       java -jar app.jar --gms.mqtt.broker-url=tcp://cloud_broker:1883
     depends_on:
@@ -69,6 +72,9 @@ services:
     environment:
       REPO_USER: ${GITHUB_REPOSITORY_OWNER}
       REPO_PASS: ${GHCR_PAT}
+      DOCKER_API_VERSION: "1.40"
+    security_opt:
+      - label=disable
     command: --interval 300
     restart: unless-stopped
 
