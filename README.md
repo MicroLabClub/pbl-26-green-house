@@ -21,10 +21,8 @@ The Cloud environment hosts the centralized Database (TimescaleDB), Backend API,
    ```bash
    cd deploy
    ```
-2. Populate the `.env` file with your configuration and secrets. This is required for GitHub Container Registry authentication (for Watchtower auto-updates) and Tailscale secure mesh networking:
+2. Populate the `.env` file with your Tailscale configuration. This allows the backend to automatically generate mesh-network invitations for your Edge nodes:
    ```env
-   GITHUB_REPOSITORY_OWNER=your-github-username-or-org
-   GHCR_PAT=your_github_personal_access_token_with_read_packages_scope
    GMS_TAILSCALE_API_KEY=your_tailscale_api_key
    GMS_TAILSCALE_TAILNET=your_tailnet_name (e.g. maxnoragami.github)
    ```
@@ -32,7 +30,7 @@ The Cloud environment hosts the centralized Database (TimescaleDB), Backend API,
    ```bash
    docker-compose -f docker-compose.cloud.yml up -d
    ```
-3. **Accessing the Cloud:**
+4. **Accessing the Cloud:**
    - The Frontend is available at `http://localhost:80`.
    - The Cloud MQTT Broker is exposed on port `1883`.
    - **Cloudflare Tunnels:** The stack includes a `cloudflared` container that automatically creates a secure, temporary tunnel to the internet so you don't need to configure your router. To see your public URL, run:
@@ -50,9 +48,8 @@ The Edge environment runs the local MQTT broker (for the Portenta sensors) and t
 #### Step 1: Configure the Gateway
 1. Add a new Greenhouse in your Cloud Dashboard to generate your Gateway credentials.
 2. On the edge mini-PC, clone this repository.
-3. Place the `.env` file you downloaded from the Web UI into the `scripts/` folder (e.g. `scripts/gateway.env`). Ensure you also add your GitHub username to the bottom of the file:
+3. Place the `.env` file you downloaded from the Web UI into the `scripts/` folder (e.g. `scripts/gateway.env`). It should look exactly like this:
    ```env
-   GITHUB_REPOSITORY_OWNER=your-github-username-or-org
    TENANT_ID=...
    GREENHOUSE_ID=...
    CLOUD_BROKER_HOST=...
@@ -98,6 +95,14 @@ docker-compose -f deploy/docker-compose.edge.yml --profile simulator up -d
 
 ### 3. Continuous Deployment (Auto-Updates)
 
-This repository is configured with a **GitHub Actions** workflow (`.github/workflows/docker-build.yml`). Whenever you push code to the `main` branch, the workflow will automatically build new Docker images for the Frontend, Backend, and Edge Engine, and push them to the GitHub Container Registry (GHCR).
+This repository is configured with a **GitHub Actions** workflow (`.github/workflows/docker-build.yml`). Whenever you push code to the `main` branch, the workflow will automatically build new Docker images for the Frontend, Backend, and Edge Engine, and push them to **Docker Hub** (under `maxnoragami`).
 
-The `docker-compose.cloud.yml` includes a **Watchtower** container. It silently monitors GHCR in the background using the `GHCR_PAT` you provided in the `.env` file. When it detects that a new image has been uploaded by GitHub Actions, it will gracefully download the update and restart the affected containers for you automatically!
+#### For Developers
+If you fork this repository and want the auto-deployment to work for your fork:
+1. Create a free Docker Hub account.
+2. Go to your GitHub Repository Settings -> Secrets and variables -> Actions.
+3. Add two new repository secrets:
+   - `DOCKERHUB_USERNAME`: Your Docker Hub username.
+   - `DOCKERHUB_TOKEN`: A Personal Access Token generated from your Docker Hub account settings.
+
+The `docker-compose.cloud.yml` includes a **Watchtower** container. It silently monitors your running containers in the background. Because the images on Docker Hub are completely **Public**, Watchtower can pull them anonymously. When it detects that a new image has been uploaded by GitHub Actions, it will gracefully download the update and restart the affected containers for you automatically!

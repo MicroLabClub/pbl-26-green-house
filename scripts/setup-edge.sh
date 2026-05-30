@@ -39,13 +39,7 @@ if ! command -v docker &> /dev/null; then
     curl -fsSL https://get.docker.com | sh
 fi
 
-# 3. Authenticate with GHCR if PAT is provided
-if [ -n "$GHCR_PAT" ] && [ -n "$GITHUB_REPOSITORY_OWNER" ]; then
-    echo "Authenticating with GitHub Container Registry..."
-    echo "$GHCR_PAT" | docker login ghcr.io -u "$GITHUB_REPOSITORY_OWNER" --password-stdin
-fi
-
-# 4. Start Docker Compose Stack
+# 3. Start Docker Compose Stack
 echo "Starting Edge Docker Stack..."
 cd "$SCRIPT_DIR/../deploy"
 # Pass the found .env file explicitly so it doesn't look for deploy/.env

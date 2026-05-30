@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-microlabclub}/gms-backend:latest
+    image: maxnoragami/gms-backend:latest
     container_name: gms-cloud-backend
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-microlabclub}/gms-frontend:latest
+    image: maxnoragami/gms-frontend:latest
     container_name: gms-cloud-frontend
     ports:
       - "80:80"
@@ -71,8 +71,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      REPO_USER: ${GITHUB_REPOSITORY_OWNER}
-      REPO_PASS: ${GHCR_PAT}
       DOCKER_API_VERSION: "1.40"
     security_opt:
       - label=disable
