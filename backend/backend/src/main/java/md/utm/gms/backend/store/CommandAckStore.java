@@ -33,7 +33,6 @@ public class CommandAckStore {
                     type,
                     tenant_id,
                     greenhouse_id,
-                    gateway_id,
                     device_id,
                     zone_id,
                     config_version,
@@ -41,14 +40,13 @@ public class CommandAckStore {
                     reason,
                     ack_timestamp,
                     updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
                 ON CONFLICT (command_id)
                 DO UPDATE SET
                     event_id = EXCLUDED.event_id,
                     type = EXCLUDED.type,
                     tenant_id = EXCLUDED.tenant_id,
                     greenhouse_id = EXCLUDED.greenhouse_id,
-                    gateway_id = EXCLUDED.gateway_id,
                     device_id = EXCLUDED.device_id,
                     zone_id = EXCLUDED.zone_id,
                     config_version = EXCLUDED.config_version,
@@ -62,7 +60,6 @@ public class CommandAckStore {
                 payload.getType(),
                 payload.getTenantId(),
                 payload.getGreenhouseId(),
-                payload.getGatewayId(),
                 payload.getDeviceId(),
                 payload.getZoneId(),
                 payload.getConfigVersion(),
@@ -84,7 +81,6 @@ public class CommandAckStore {
                        type,
                        tenant_id,
                        greenhouse_id,
-                       gateway_id,
                        device_id,
                        zone_id,
                        config_version,
@@ -101,7 +97,6 @@ public class CommandAckStore {
                     payload.setType(rs.getString("type"));
                     payload.setTenantId(rs.getString("tenant_id"));
                     payload.setGreenhouseId(rs.getString("greenhouse_id"));
-                    payload.setGatewayId(rs.getString("gateway_id"));
                     payload.setDeviceId(rs.getString("device_id"));
                     payload.setZoneId(rs.getString("zone_id"));
                     payload.setConfigVersion(rs.getObject("config_version", Long.class));
@@ -134,7 +129,6 @@ public class CommandAckStore {
                        type,
                        tenant_id,
                        greenhouse_id,
-                       gateway_id,
                        device_id,
                        zone_id,
                        config_version,
@@ -153,7 +147,6 @@ public class CommandAckStore {
                     payload.setType(rs.getString("type"));
                     payload.setTenantId(rs.getString("tenant_id"));
                     payload.setGreenhouseId(rs.getString("greenhouse_id"));
-                    payload.setGatewayId(rs.getString("gateway_id"));
                     payload.setDeviceId(rs.getString("device_id"));
                     payload.setZoneId(rs.getString("zone_id"));
                     payload.setConfigVersion(rs.getObject("config_version", Long.class));
