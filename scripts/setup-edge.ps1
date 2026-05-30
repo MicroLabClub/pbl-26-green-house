@@ -1,15 +1,18 @@
 Write-Host "=== GMS Edge Setup Script ===" -ForegroundColor Cyan
 
-# Check if deploy\.env exists
-if (-Not (Test-Path "deploy\.env")) {
-    Write-Host "ERROR: deploy\.env not found!" -ForegroundColor Red
-    Write-Host "Please create deploy\.env with the credentials generated from the Web UI."
+# Find the downloaded .env file in the scripts folder
+$envFile = Get-ChildItem -Path "scripts\*.env" -ErrorAction SilentlyContinue | Select-Object -First 1
+
+if (-Not $envFile) {
+    Write-Host "ERROR: No .env file found in the scripts\ folder!" -ForegroundColor Red
+    Write-Host "Please place the credentials file downloaded from the Web UI into the scripts\ folder."
     exit 1
 }
 
+Write-Host "Using configuration from $($envFile.FullName)" -ForegroundColor Cyan
 # Parse .env
 $envVars = @{}
-Get-Content "deploy\.env" | Where-Object { $_ -match "^([^#=]+)=(.*)$" } | ForEach-Object {
+Get-Content $envFile.FullName | Where-Object { $_ -match "^([^#=]+)=(.*)$" } | ForEach-Object {
     $envVars[$Matches[1]] = $Matches[2].Trim()
 }
 
@@ -38,10 +41,9 @@ if (-Not (Get-Command docker -ErrorAction SilentlyContinue)) {
 
 # 3. Start Docker Compose Stack
 Write-Host "Starting Edge Docker Stack..." -ForegroundColor Yellow
-Set-Location "deploy"
-docker compose -f docker-compose.edge.yml pull
-docker compose -f docker-compose.edge.yml up -d
-Set-Location ".."
+# Pass the found .env file explicitly
+docker compose --env-file "$($envFile.FullName)" -f deploy/docker-compose.edge.yml pull
+docker compose --env-file "$($envFile.FullName)" -f deploy/docker-compose.edge.yml up -d
 
 # 4. Determine Local IP for MQTT Broker
 Write-Host "Determining local IP..." -ForegroundColor Yellow

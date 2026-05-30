@@ -3,15 +3,18 @@ set -e
 
 echo "=== GMS Edge Setup Script ==="
 
-# Check if deploy/.env exists
-if [ ! -f "deploy/.env" ]; then
-    echo "ERROR: deploy/.env not found!"
-    echo "Please create deploy/.env with the credentials generated from the Web UI."
+# Find the downloaded .env file in the scripts folder
+ENV_FILE=$(find scripts -maxdepth 1 -name "*.env" | head -n 1)
+
+if [ -z "$ENV_FILE" ]; then
+    echo "ERROR: No .env file found in the scripts/ folder!"
+    echo "Please place the credentials file downloaded from the Web UI into the scripts/ folder."
     exit 1
 fi
 
+echo "Using configuration from $ENV_FILE"
 # Source the .env file safely
-export $(grep -v '^#' deploy/.env | xargs)
+export $(grep -v '^#' "$ENV_FILE" | xargs)
 
 # 1. Install Tailscale if missing
 if ! command -v tailscale &> /dev/null; then
@@ -35,10 +38,9 @@ fi
 
 # 3. Start Docker Compose Stack
 echo "Starting Edge Docker Stack..."
-cd deploy
-docker compose -f docker-compose.edge.yml pull
-docker compose -f docker-compose.edge.yml up -d
-cd ..
+# Pass the found .env file explicitly so it doesn't look for deploy/.env
+docker compose --env-file "$ENV_FILE" -f deploy/docker-compose.edge.yml pull
+docker compose --env-file "$ENV_FILE" -f deploy/docker-compose.edge.yml up -d
 
 # 4. Determine Local IP for MQTT Broker
 echo "Determining local IP..."

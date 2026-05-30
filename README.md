@@ -50,7 +50,7 @@ The Edge environment runs the local MQTT broker (for the Portenta sensors) and t
 #### Step 1: Configure the Gateway
 1. Add a new Greenhouse in your Cloud Dashboard to generate your Gateway credentials.
 2. On the edge mini-PC, clone this repository.
-3. Inside the `deploy/` folder, create a `.env` file and paste the credentials from the Web UI. Ensure you also add your GitHub username:
+3. Place the `.env` file you downloaded from the Web UI into the `scripts/` folder (e.g. `scripts/gateway.env`). Ensure you also add your GitHub username to the bottom of the file:
    ```env
    GITHUB_REPOSITORY_OWNER=your-github-username-or-org
    TENANT_ID=...
