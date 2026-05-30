@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 public record GreenhouseCreateRequest(
         @NotBlank String name,
         @JsonProperty("greenhouse_id") String greenhouseId,
-        @JsonProperty("gateway_id") String gatewayId,
         Double latitude,
         Double longitude,
         String address,

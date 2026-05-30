@@ -70,14 +70,6 @@ public class CommandAckPayload {
         this.greenhouseId = greenhouseId;
     }
 
-    public String getGatewayId() {
-        return gatewayId;
-    }
-
-    public void setGatewayId(String gatewayId) {
-        this.gatewayId = gatewayId;
-    }
-
     public String getCommandId() {
         return commandId;
     }

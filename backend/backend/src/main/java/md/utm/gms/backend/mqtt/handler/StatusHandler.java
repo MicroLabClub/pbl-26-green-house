@@ -37,18 +37,16 @@ public class StatusHandler {
 
             String tenantId     = firstNonBlank(payload.getTenantId(),     scope.tenantId);
             String greenhouseId = firstNonBlank(payload.getGreenhouseId(), scope.greenhouseId);
-            String gatewayId    = firstNonBlank(payload.getGatewayId(),    greenhouseId);
 
             gatewayStatusStore.upsert(
                     tenantId,
                     greenhouseId,
-                    gatewayId,
                     payload.getStatus(),
                     payload.getFirmwareVersion(),
                     payload.getTimestamp());
 
-            log.info("Gateway status  tenant={}  greenhouse={}  gateway={}  status={}  firmware={}",
-                    tenantId, greenhouseId, gatewayId,
+            log.info("Gateway status  tenant={}  greenhouse={}  status={}  firmware={}",
+                    tenantId, greenhouseId,
                     payload.getStatus(), payload.getFirmwareVersion());
 
         } catch (Exception e) {

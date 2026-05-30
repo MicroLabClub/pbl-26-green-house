@@ -29,9 +29,6 @@ public class GatewayStatusPayload {
     @JsonProperty("greenhouse_id")
     private String greenhouseId;
 
-    @JsonProperty("gateway_id")
-    private String gatewayId;
-
     /** Gateway connectivity state: {@code ONLINE}, {@code OFFLINE}, {@code DEGRADED}. */
     private String status;
 

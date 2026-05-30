@@ -44,7 +44,6 @@ public class AlertHandler {
                     .id(id)
                     .tenantId(scope.tenantId)
                     .greenhouseId(scope.greenhouseId)
-                    .gatewayId(payload.getGatewayId())
                     .zoneId(payload.getZoneId())
                     .deviceId(payload.getDeviceId())
                     .severity(payload.getSeverity())

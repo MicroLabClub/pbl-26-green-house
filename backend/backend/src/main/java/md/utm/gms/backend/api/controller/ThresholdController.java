@@ -81,7 +81,7 @@ public class ThresholdController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
 
-        String gatewayId = defaultString(greenhouse.gatewayId(), greenhouse.greenhouseId());
+        String gatewayId = defaultString(greenhouse.greenhouseId(), greenhouse.greenhouseId());
         thresholdApplyStatusStore.markPending(
                 tenantId,
                 greenhouseId,

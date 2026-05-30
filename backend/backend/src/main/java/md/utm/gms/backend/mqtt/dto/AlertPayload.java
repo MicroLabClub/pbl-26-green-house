@@ -37,9 +37,6 @@ public class AlertPayload {
     @JsonProperty("sensor_key")
     private String sensorKey;
 
-    @JsonProperty("gateway_id")
-    private String gatewayId;
-
     @JsonProperty("zone_id")
     private String zoneId;
 
