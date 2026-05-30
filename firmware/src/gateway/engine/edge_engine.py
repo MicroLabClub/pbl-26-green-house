@@ -18,7 +18,6 @@ CLOUD_PASS = os.environ.get("CLOUD_PASSWORD", "secret")
 
 TENANT_ID = os.environ.get("TENANT_ID", "tenant-demo")
 GREENHOUSE_ID = os.environ.get("GREENHOUSE_ID", "greenhouse-demo")
-GATEWAY_ID = os.environ.get("GATEWAY_ID", GREENHOUSE_ID)
 
 SNAPSHOT_INTERVAL_SEC = int(os.environ.get("SNAPSHOT_INTERVAL_SEC", 60))
 BUFFER_FLUSH_BATCH = int(os.environ.get("BUFFER_FLUSH_BATCH", 100))
@@ -380,7 +379,6 @@ def publish_registry_event(
         "type": event_type,
         "tenant_id": TENANT_ID,
         "greenhouse_id": GREENHOUSE_ID,
-        "gateway_id": GATEWAY_ID,
         "device_id": device_id,
         "zone_id": effective_zone_id,
         "zone_name": effective_zone_name,
@@ -399,7 +397,6 @@ def publish_gateway_status(state):
         "type": "GATEWAY_STATUS",
         "tenant_id": TENANT_ID,
         "greenhouse_id": GREENHOUSE_ID,
-        "gateway_id": GATEWAY_ID,
         "status": state,
         "timestamp": now_iso(),
     }
@@ -412,7 +409,6 @@ def publish_command_ack(status, command_id, device_id=None, zone_id=None, reason
         "type": ack_type,
         "tenant_id": TENANT_ID,
         "greenhouse_id": GREENHOUSE_ID,
-        "gateway_id": GATEWAY_ID,
         "command_id": command_id,
         "device_id": device_id,
         "zone_id": zone_id,
@@ -524,7 +520,6 @@ def publish_threshold_alert(device_id, zone_id, sensor_key, severity, value, thr
     message = build_threshold_alert_message(sensor_key, severity, value, bounds)
     payload = {
         "alert_id": uuid_str(),
-        "gateway_id": GATEWAY_ID,
         "zone_id": zone_id,
         "device_id": device_id,
         "sensor_key": sensor_key,
@@ -755,7 +750,6 @@ def handle_local_telemetry(device_id, payload_text):
     base_payload = {
         "tenant_id": TENANT_ID,
         "greenhouse_id": GREENHOUSE_ID,
-        "gateway_id": GATEWAY_ID,
         "device_id": device_id,
         "zone_id": zone_id,
         "zone_name": zone_name,
@@ -968,12 +962,6 @@ def handle_downlink_threshold(payload):
     if payload.get("tenant_id") != TENANT_ID or payload.get("greenhouse_id") != GREENHOUSE_ID:
         fail("Threshold payload scope does not match gateway tenant/greenhouse")
         return
-
-    payload_gateway_id = payload.get("gateway_id")
-    if payload_gateway_id and payload_gateway_id != GATEWAY_ID:
-        fail("Threshold payload gateway_id does not match this gateway")
-        return
-
     if not zone_id:
         fail("Missing zone_id")
         return
@@ -1092,7 +1080,7 @@ def heartbeat_loop():
 if __name__ == "__main__":
     print("Starting GMS Edge Engine...", flush=True)
     print(
-        f"[CFG] tenant={TENANT_ID} greenhouse={GREENHOUSE_ID} gateway={GATEWAY_ID}",
+        f"[CFG] tenant={TENANT_ID} greenhouse={GREENHOUSE_ID} ",
         flush=True,
     )
 
@@ -1101,11 +1089,11 @@ if __name__ == "__main__":
     load_threshold_config_cache()
     load_threshold_alert_state_cache()
 
-    local_client = mqtt.Client(client_id=f"edge-local-{GATEWAY_ID}")
+    local_client = mqtt.Client(client_id=f"edge-local-{GREENHOUSE_ID}")
     local_client.on_connect = on_local_connect
     local_client.on_message = on_local_message
 
-    cloud_client = mqtt.Client(client_id=f"edge-cloud-{GATEWAY_ID}")
+    cloud_client = mqtt.Client(client_id=f"edge-cloud-{GREENHOUSE_ID}")
     cloud_client.username_pw_set(CLOUD_USER, CLOUD_PASS)
     cloud_client.on_connect = on_cloud_connect
     cloud_client.on_disconnect = on_cloud_disconnect
