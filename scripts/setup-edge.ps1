@@ -102,7 +102,6 @@ if (-Not (Get-Command pio -ErrorAction SilentlyContinue)) {
 $fwEnv = Join-Path $PSScriptRoot "..\firmware\src\portenta\.env"
 Write-Host "Generating Firmware .env at $fwEnv..." -ForegroundColor Yellow
 
-$uniqueId = -join ((48..57) + (97..102) | Get-Random -Count 6 | % {[char]$_})
 $greenhouseId = if ($envVars.ContainsKey("GREENHOUSE_ID")) { $envVars["GREENHOUSE_ID"] } else { "unknown-gh" }
 
 @"
@@ -111,7 +110,6 @@ WIFI_PASS="YOUR_WIFI_PASSWORD"
 MQTT_BROKER="$localIp"
 MQTT_PORT="18831"
 GREENHOUSE_ID="$greenhouseId"
-DEVICE_ID="portenta-$uniqueId"
 DEVICE_LABEL="Portenta Sensor Hub"
 "@ | Out-File -FilePath $fwEnv -Encoding utf8
 
