@@ -37,9 +37,6 @@ public class AlertResponse {
     @JsonProperty("greenhouse_id")
     private String greenhouseId;
 
-    @JsonProperty("gateway_id")
-    private String gatewayId;
-
     @JsonProperty("zone_id")
     private String zoneId;
 

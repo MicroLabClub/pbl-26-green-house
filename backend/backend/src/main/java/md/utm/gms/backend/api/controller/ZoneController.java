@@ -109,7 +109,6 @@ public class ZoneController {
         command.put("type", "ASSIGN_ZONE");
         command.put("tenant_id", tenantId);
         command.put("greenhouse_id", greenhouseId);
-        command.put("gateway_id", greenhouse.greenhouseId());
         command.put("device_id", request.getDeviceId());
         command.put("zone_id", updated.getZoneId());
         command.put("zone_name", updated.getZoneName());
@@ -151,7 +150,6 @@ public class ZoneController {
                 "type", "UNASSIGN_ZONE",
                 "tenant_id", tenantId,
                 "greenhouse_id", greenhouseId,
-                "gateway_id", greenhouse.greenhouseId(),
                 "device_id", request.getDeviceId(),
                 "issued_at", Instant.now().toString()
         );
@@ -194,7 +192,6 @@ public class ZoneController {
         payload.put("type", request.getAction());
         payload.put("tenant_id", tenantId);
         payload.put("greenhouse_id", greenhouseId);
-        payload.put("gateway_id", greenhouse.greenhouseId());
         payload.put("device_id", resolvedDeviceId);
         payload.put("zone_id", request.getZoneId());
         payload.put("issued_at", Instant.now().toString());
@@ -248,14 +245,11 @@ public class ZoneController {
                 })
                 .toList();
 
-        String gatewayId = request.gatewayIdOrDefault(greenhouse.greenhouseId());
-
         Map<String, Object> payload = new HashMap<>();
         payload.put("command_id", commandId);
         payload.put("type", "ZONE_REGISTRY_SYNC");
         payload.put("tenant_id", tenantId);
         payload.put("greenhouse_id", greenhouseId);
-        payload.put("gateway_id", gatewayId);
         payload.put("config_version", Instant.now().toString());
         payload.put("issued_at", Instant.now().toString());
         payload.put("zones", zones);
@@ -275,7 +269,6 @@ public class ZoneController {
         return ResponseEntity.ok(Map.of(
                 "command_id", commandId,
                 "topic", topic,
-                "gateway_id", gatewayId,
                 "zones_count", zones.size()
         ));
     }
@@ -324,9 +317,8 @@ public class ZoneController {
                     thresholdStore.defaultThresholds(),
                     "system", commandId);
 
-            String gatewayId = defaultString(greenhouse.greenhouseId(), greenhouse.greenhouseId());
             thresholdApplyStatusStore.markPending(
-                    tenantId, greenhouseId, zoneId, gatewayId,
+                    tenantId, greenhouseId, zoneId,
                     saved.getConfigVersion(), commandId);
 
             pushThresholdDownlink(tenantId, greenhouseId, zoneId, greenhouse, saved);
@@ -337,7 +329,6 @@ public class ZoneController {
 
     private void pushThresholdDownlink(String tenantId, String greenhouseId, String zoneId,
                                        GreenhouseResponse greenhouse, ThresholdConfigResponse config) {
-        String gatewayId = defaultString(greenhouse.greenhouseId(), greenhouse.greenhouseId());
         String commandId = config.getCommandId() != null ? config.getCommandId() : UUID.randomUUID().toString();
 
         Map<String, Object> downlink = new HashMap<>();
@@ -345,7 +336,6 @@ public class ZoneController {
         downlink.put("type", "THRESHOLD_CONFIG_UPDATE");
         downlink.put("tenant_id", tenantId);
         downlink.put("greenhouse_id", greenhouseId);
-        downlink.put("gateway_id", gatewayId);
         downlink.put("zone_id", zoneId);
         downlink.put("config_version", config.getConfigVersion());
         downlink.put("issued_at", Instant.now().toString());

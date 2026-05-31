@@ -81,12 +81,10 @@ public class ThresholdController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
 
-        String gatewayId = defaultString(greenhouse.greenhouseId(), greenhouse.greenhouseId());
         thresholdApplyStatusStore.markPending(
                 tenantId,
                 greenhouseId,
                 zoneId,
-                gatewayId,
                 saved.getConfigVersion(),
                 commandId);
 
@@ -95,7 +93,6 @@ public class ThresholdController {
         downlink.put("type", "THRESHOLD_CONFIG_UPDATE");
         downlink.put("tenant_id", tenantId);
         downlink.put("greenhouse_id", greenhouseId);
-        downlink.put("gateway_id", gatewayId);
         downlink.put("zone_id", zoneId);
         downlink.put("config_version", saved.getConfigVersion());
         downlink.put("issued_at", Instant.now().toString());

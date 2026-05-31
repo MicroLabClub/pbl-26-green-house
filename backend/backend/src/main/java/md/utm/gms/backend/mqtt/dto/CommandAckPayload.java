@@ -17,9 +17,6 @@ public class CommandAckPayload {
     @JsonProperty("greenhouse_id")
     private String greenhouseId;
 
-    @JsonProperty("gateway_id")
-    private String gatewayId;
-
     @JsonProperty("command_id")
     private String commandId;
 

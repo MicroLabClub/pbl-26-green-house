@@ -1,7 +1,6 @@
 import os
 
 # SCons injects 'Import' and 'env' dynamically at runtime.
-# This dummy block pacifies IDE linters (Pyright/Pylance/Pyre) without affecting PlatformIO.
 try:
     Import("env")  # type: ignore
 except NameError:

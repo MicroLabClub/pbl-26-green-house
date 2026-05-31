@@ -12,3 +12,4 @@
 *.pid
 .idea/
 **/**/.pid
+**/**/scripts/*.env

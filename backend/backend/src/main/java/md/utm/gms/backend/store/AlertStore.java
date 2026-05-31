@@ -23,7 +23,6 @@ public class AlertStore {
                     .id(rs.getString("id"))
                     .tenantId(rs.getString("tenant_id"))
                     .greenhouseId(rs.getString("greenhouse_id"))
-                    .gatewayId(rs.getString("gateway_id"))
                     .zoneId(rs.getString("zone_id"))
                     .deviceId(rs.getString("device_id"))
                     .severity(rs.getString("severity"))
@@ -59,7 +58,6 @@ public class AlertStore {
                     id,
                     tenant_id,
                     greenhouse_id,
-                    gateway_id,
                     zone_id,
                     device_id,
                     severity,
@@ -73,12 +71,11 @@ public class AlertStore {
                     triggered_at,
                     acknowledged,
                     dismissed_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
                 ON CONFLICT (id)
                 DO UPDATE SET
                     tenant_id = EXCLUDED.tenant_id,
                     greenhouse_id = EXCLUDED.greenhouse_id,
-                    gateway_id = EXCLUDED.gateway_id,
                     zone_id = EXCLUDED.zone_id,
                     device_id = EXCLUDED.device_id,
                     severity = EXCLUDED.severity,
@@ -96,7 +93,6 @@ public class AlertStore {
                 alert.getId(),
                 tenantId,
                 greenhouseId,
-                alert.getGatewayId(),
                 alert.getZoneId(),
                 alert.getDeviceId(),
                 defaultString(alert.getSeverity(), "INFO"),
@@ -147,7 +143,6 @@ public class AlertStore {
                 SELECT id,
                        tenant_id,
                        greenhouse_id,
-                       gateway_id,
                        zone_id,
                        device_id,
                        severity,
@@ -243,7 +238,6 @@ public class AlertStore {
                 SELECT id,
                        tenant_id,
                        greenhouse_id,
-                       gateway_id,
                        zone_id,
                        device_id,
                        severity,

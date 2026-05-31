@@ -23,9 +23,6 @@ public class ThresholdApplyStatusResponse {
     @JsonProperty("zone_id")
     private String zoneId;
 
-    @JsonProperty("gateway_id")
-    private String gatewayId;
-
     @JsonProperty("config_version")
     private long configVersion;
 

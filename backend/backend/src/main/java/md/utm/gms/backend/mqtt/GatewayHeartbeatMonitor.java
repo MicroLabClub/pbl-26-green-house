@@ -45,7 +45,6 @@ public class GatewayHeartbeatMonitor {
                     .id(alertId)
                     .tenantId(gw.tenantId())
                     .greenhouseId(gw.greenhouseId())
-                    .gatewayId(gw.greenhouseId())
                     .severity("CRITICAL")
                     .sensorKey("gateway_heartbeat")
                     .message("Gateway " + gw.greenhouseId() + " has not sent a heartbeat in "

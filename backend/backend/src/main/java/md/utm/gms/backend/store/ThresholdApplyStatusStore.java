@@ -19,7 +19,6 @@ public class ThresholdApplyStatusStore {
                     .tenantId(rs.getString("tenant_id"))
                     .greenhouseId(rs.getString("greenhouse_id"))
                     .zoneId(rs.getString("zone_id"))
-                    .gatewayId(rs.getString("gateway_id"))
                     .configVersion(rs.getLong("config_version"))
                     .commandId(rs.getString("command_id"))
                     .status(rs.getString("status"))
@@ -37,7 +36,6 @@ public class ThresholdApplyStatusStore {
     public void markPending(String tenantId,
                             String greenhouseId,
                             String zoneId,
-                            String gatewayId,
                             long configVersion,
                             String commandId) {
         jdbcTemplate.update(
@@ -46,15 +44,14 @@ public class ThresholdApplyStatusStore {
                     tenant_id,
                     greenhouse_id,
                     zone_id,
-                    gateway_id,
                     config_version,
                     command_id,
                     status,
                     reason,
                     ack_timestamp,
                     updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, 'PENDING', NULL, NULL, NOW())
-                ON CONFLICT (tenant_id, greenhouse_id, zone_id, gateway_id, config_version)
+                ) VALUES (?, ?, ?, ?, ?, 'PENDING', NULL, NULL, NOW())
+                ON CONFLICT (tenant_id, greenhouse_id, zone_id, config_version)
                 DO UPDATE SET
                     command_id = EXCLUDED.command_id,
                     status = 'PENDING',
@@ -65,7 +62,6 @@ public class ThresholdApplyStatusStore {
                 tenantId,
                 greenhouseId,
                 zoneId,
-                gatewayId,
                 configVersion,
                 commandId
         );
@@ -121,7 +117,6 @@ public class ThresholdApplyStatusStore {
                 SELECT tenant_id,
                        greenhouse_id,
                        zone_id,
-                       gateway_id,
                        config_version,
                        command_id,
                        status,
