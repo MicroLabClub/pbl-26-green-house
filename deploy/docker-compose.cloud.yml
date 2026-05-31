@@ -81,10 +81,9 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: gms-cloudflared
     restart: unless-stopped
-    # This will create a quick tunnel and output a public URL to the logs.
-    # To view the URL, run: docker logs gms-cloudflared
-    # Alternatively, you can use a TUNNEL_TOKEN for a persistent domain.
-    command: tunnel --url http://frontend:80
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
 
 volumes:
   timescaledb_data:
