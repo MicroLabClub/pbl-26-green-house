@@ -84,7 +84,7 @@ Run the automated setup script for your operating system from the root of the pr
    - **Mac/Linux:** `./scripts/build.sh` and `./scripts/upload.sh /dev/ttyACM0`
    - **Windows:** `.\scripts\build.ps1` and `.\scripts\upload.ps1 -Port COM3`
 
-*Note: The edge stack utilizes `network_mode: host` to automatically leverage the host machine's Tailscale connection, creating a secure, zero-config mesh network to the Cloud Broker!*
+*Note: The edge stack utilizes standard bridged port mappings to ensure seamless cross-compatibility with Windows/Mac Docker Desktop, while transparently routing outbound connections through the host machine's Tailscale network to securely reach the Cloud Broker!*
 
 **Simulator Mode:**
 If you want to test the edge environment without real hardware (Arduino Portenta), you can run the simulator profile:
