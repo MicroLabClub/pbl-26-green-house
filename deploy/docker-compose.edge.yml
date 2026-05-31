@@ -9,7 +9,8 @@ services:
         printf 'listener 18831\nallow_anonymous true\npersistence true\npersistence_location /mosquitto/data/\nlog_dest file /mosquitto/log/mosquitto.log\n'
         > /tmp/mosquitto.conf
         && exec mosquitto -c /tmp/mosquitto.conf
-    network_mode: "host"
+    ports:
+      - "18831:18831"
     volumes:
       - local_broker_data:/mosquitto/data
       - local_broker_log:/mosquitto/log
@@ -23,10 +24,9 @@ services:
     volumes:
       - edge_database:/app/data
     restart: unless-stopped
-    network_mode: "host"
     environment:
       # Connect to the local broker to read from physical Portenta zones
-      - LOCAL_BROKER_HOST=localhost
+      - LOCAL_BROKER_HOST=local_broker
       - LOCAL_BROKER_PORT=18831
       
       # Connect to the external cloud broker to sync telemetry and receive thresholds
@@ -52,11 +52,12 @@ services:
     command: sh -lc "bun install --ignore-scripts && bun run dev --host 0.0.0.0 --port 4173"
     depends_on:
       - local_broker
-    network_mode: "host"
+    ports:
+      - "4173:4173"
     environment:
       - HOST=0.0.0.0
       - PORT=4173
-      - MQTT_HOST=localhost
+      - MQTT_HOST=local_broker
       - MQTT_PORT=18831
       - GREENHOUSE_ID=${GREENHOUSE_ID:-gh-001}
       - PUBLISH_INTERVAL_MS=10000
