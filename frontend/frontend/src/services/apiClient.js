@@ -52,11 +52,19 @@ export async function apiRequest(path, options = {}) {
     let message = `Request failed with status ${response.status}`;
     
     // Check if the parsed string looks like an HTML document
-    if (typeof parsed === 'string' && parsed.trim().toLowerCase().startsWith('<html')) {
+    const isHtml = typeof parsed === 'string' && (
+      parsed.trim().toLowerCase().startsWith('<html') || 
+      parsed.trim().toLowerCase().startsWith('<!doctype html')
+    );
+
+    if (isHtml) {
         if (response.status === 413) message = "File exceeds the maximum allowed size (50MB).";
         else if (response.status === 502) message = "Bad Gateway: The server is temporarily unreachable.";
         else if (response.status === 503) message = "Service Unavailable: The server is overloaded or down for maintenance.";
         else if (response.status === 504) message = "Gateway Timeout: The server took too long to respond.";
+        else if (response.status >= 520 && response.status <= 530 || parsed.includes('Cloudflare')) {
+            message = "Cloudflare Network Error: The backend service is currently unreachable or disconnected. Please try again later.";
+        }
         else message = `An unexpected server error occurred (Status ${response.status}).`;
     } else {
         message =
