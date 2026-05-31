@@ -1,5 +1,6 @@
 package md.utm.gms.backend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -57,11 +58,14 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Value("${gms.cors.allowed-origins:}")
+    private List<String> customAllowedOrigins;
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         // Allow local dev frontends plus temporary ngrok-hosted frontends used for remote demos.
-        cfg.setAllowedOriginPatterns(List.of(
+        List<String> origins = new java.util.ArrayList<>(List.of(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
                 "https://*.ngrok-free.app",
@@ -69,6 +73,10 @@ public class SecurityConfig {
                 "https://*.trycloudflare.com",
                 "https://*.pages.dev"
         ));
+        if (customAllowedOrigins != null) {
+            origins.addAll(customAllowedOrigins.stream().filter(s -> !s.isBlank()).toList());
+        }
+        cfg.setAllowedOriginPatterns(origins);
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
         cfg.setAllowCredentials(true);
