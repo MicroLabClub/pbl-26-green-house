@@ -21,23 +21,22 @@ The Cloud environment hosts the centralized Database (TimescaleDB), Backend API,
    ```bash
    cd deploy
    ```
-2. Populate the `.env` file with your Tailscale configuration. This allows the backend to automatically generate mesh-network invitations for your Edge nodes:
+2. Populate the `.env` file with your configuration. This configures Tailscale for Edge node invitations, your MQTT broker details, and Cloudflare Tunnel settings:
    ```env
    GMS_TAILSCALE_API_KEY=your_tailscale_api_key
    GMS_TAILSCALE_TAILNET=your_tailnet_name (e.g. maxnoragami.github)
+   GMS_PUBLIC_MQTT_HOST=your_public_mqtt_ip_or_domain
+   CLOUDFLARE_TUNNEL_TOKEN=your_cloudflare_tunnel_token
+   GMS_CORS_ALLOWED_ORIGINS=https://gms.yourdomain.com
    ```
 3. Start the cloud infrastructure:
    ```bash
    docker-compose -f docker-compose.cloud.yml up -d
    ```
 4. **Accessing the Cloud:**
-   - The Frontend is available at `http://localhost:80`.
+   - The Frontend is mapped to the internal `frontend` network container on port `80`.
    - The Cloud MQTT Broker is exposed on port `1883`.
-   - **Cloudflare Tunnels:** The stack includes a `cloudflared` container that automatically creates a secure, temporary tunnel to the internet so you don't need to configure your router. To see your public URL, run:
-     ```bash
-     docker logs gms-cloudflared
-     ```
-     You will find a `.trycloudflare.com` link in the logs. You can use this URL to access the frontend from anywhere.
+   - **Cloudflare Tunnels:** The stack includes a `cloudflared` container that automatically creates a secure Zero Trust tunnel to your domain using the `CLOUDFLARE_TUNNEL_TOKEN`. You can access your dashboard securely from anywhere at your configured Cloudflare Public Hostname (e.g. `https://gms.yourdomain.com`), while the backend automatically trusts CORS requests from that origin via `GMS_CORS_ALLOWED_ORIGINS`.
 
 > **Note on Database Updates:** The Backend uses Flyway database migrations. If you push code that changes the database schema (new tables or columns), you do not need to wipe the database. The backend will automatically apply the changes upon restart without losing historical data.
 
@@ -76,14 +75,14 @@ Run the automated setup script for your operating system from the root of the pr
 - Connects your PC to the Tailscale mesh network using your Auth Key.
 - Starts the Edge Docker stack.
 - Determines your local Wi-Fi IP address.
-- Generates a pre-configured `firmware/src/portenta/.env` file with a unique `DEVICE_ID`.
+- Generates a pre-configured `firmware/src/portenta/.env` file. (The device ID is automatically generated from the hardware MAC address during upload to ensure global uniqueness).
 
 #### Step 3: Flash the Firmware
 1. Open the generated `firmware/src/portenta/.env` file and enter your `WIFI_SSID` and `WIFI_PASS`.
 2. Connect your Arduino Portenta via USB.
-3. Compile and upload the firmware using the provided scripts:
-   - **Mac/Linux:** `./scripts/build.sh` and `./scripts/upload.sh`
-   - **Windows:** `.\scripts\build.ps1` and `.\scripts\upload.ps1`
+3. Compile and upload the firmware using the provided scripts (you can optionally pass a serial port to monitor):
+   - **Mac/Linux:** `./scripts/build.sh` and `./scripts/upload.sh /dev/ttyACM0`
+   - **Windows:** `.\scripts\build.ps1` and `.\scripts\upload.ps1 -Port COM3`
 
 *Note: The edge stack utilizes `network_mode: host` to automatically leverage the host machine's Tailscale connection, creating a secure, zero-config mesh network to the Cloud Broker!*
 
