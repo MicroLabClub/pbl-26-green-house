@@ -1,0 +1,21 @@
+services:
+  frontend:
+    image: maxnoragami/gms-frontend:latest
+    container_name: gms-frontend
+    ports:
+      - "127.0.0.1:9004:80"
+    mem_limit: 512m
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: gms-watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DOCKER_API_VERSION: "1.40"
+    security_opt:
+      - label=disable
+    command: --interval 300
+    mem_limit: 256m
+    restart: unless-stopped
