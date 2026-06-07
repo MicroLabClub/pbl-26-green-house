@@ -13,3 +13,4 @@
 .idea/
 **/**/.pid
 **/**/scripts/*.env
+workspace.local/
