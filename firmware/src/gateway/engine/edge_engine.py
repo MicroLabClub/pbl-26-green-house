@@ -297,8 +297,14 @@ def normalize_metrics(payload_dict):
             metrics[key] = casted
         except Exception:
             continue
-    return metrics
 
+    # Apply sensor calibrations/conversions
+    if "soil_moist" in metrics:
+        # Convert VWC (approx 0-45) to 0-100% human readable scale
+        scaled = (metrics["soil_moist"] / 45.0) * 100.0
+        metrics["soil_moist"] = max(0.0, min(100.0, scaled))
+
+    return metrics
 
 def metric_threshold(metric_name):
     if metric_name.startswith("din_") or metric_name.startswith("dout_"):
