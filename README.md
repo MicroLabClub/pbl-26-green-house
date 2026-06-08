@@ -11,12 +11,22 @@ An IoT platform designed for controlling and monitoring greenhouse climates usin
 
 ## Deployment Guide (Self-Hosting)
 
-This project separates the global backend infrastructure (Cloud) from the local greenhouse logic (Edge). You will need to run the **Cloud** environment on your main server, and the **Edge** environment on the mini-PC stationed in the greenhouse.
+This project separates the global backend infrastructure (Cloud) from the local greenhouse logic (Edge). It is designed to be deployed across three separate nodes:
 
-### 1. Cloud Environment (Your Main Server)
+1. **Frontend Server:** (e.g., University Microlab Server) Hosts the React dashboard.
+2. **Cloud Backend:** (e.g., Digital Ocean Droplet) Hosts the Database, Backend API, and Cloud MQTT Broker.
+3. **Edge Node:** (e.g., Mini-PC in the greenhouse) Hosts the local MQTT broker and Edge Engine.
 
-The Cloud environment hosts the centralized Database (TimescaleDB), Backend API, Frontend Dashboard, and the global MQTT broker.
+### 1. Frontend Server (React Dashboard)
+The Frontend is deployed using a lightweight Nginx container with Watchtower for auto-updates.
+1. On your frontend server, pull the repository and run the frontend stack:
+   ```bash
+   docker compose -f deploy/docker-compose.frontend.yml up -d
+   ```
+2. The UI will bind to `127.0.0.1:9004:80` (or whatever is configured in the compose file) to be served behind your server's reverse proxy.
 
+### 2. Cloud Backend (Your Main Server / Digital Ocean)
+The Cloud environment hosts the centralized Database (TimescaleDB), Backend API, and the global MQTT broker.
 1. Navigate to the deployment folder and create a `.env` file:
    ```bash
    cd deploy
@@ -25,18 +35,17 @@ The Cloud environment hosts the centralized Database (TimescaleDB), Backend API,
    ```env
    GMS_TAILSCALE_API_KEY=your_tailscale_api_key
    GMS_TAILSCALE_TAILNET=your_tailnet_name (e.g. maxnoragami.github)
-   GMS_PUBLIC_MQTT_HOST=your_public_mqtt_ip_or_domain
+   GMS_PUBLIC_MQTT_HOST=your_droplet_tailscale_ip
    CLOUDFLARE_TUNNEL_TOKEN=your_cloudflare_tunnel_token
-   GMS_CORS_ALLOWED_ORIGINS=https://gms.yourdomain.com
+   GMS_CORS_ALLOWED_ORIGINS=https://green-house-26.microlab.club
    ```
 3. Start the cloud infrastructure:
    ```bash
    docker-compose -f docker-compose.cloud.yml up -d
    ```
 4. **Accessing the Cloud:**
-   - The Frontend is mapped to the internal `frontend` network container on port `80`.
-   - The Cloud MQTT Broker is exposed on port `1883`.
-   - **Cloudflare Tunnels:** The stack includes a `cloudflared` container that automatically creates a secure Zero Trust tunnel to your domain using the `CLOUDFLARE_TUNNEL_TOKEN`. You can access your dashboard securely from anywhere at your configured Cloudflare Public Hostname (e.g. `https://gms.yourdomain.com`), while the backend automatically trusts CORS requests from that origin via `GMS_CORS_ALLOWED_ORIGINS`.
+   - The Cloud MQTT Broker is exposed on port `1883` via Tailscale.
+   - **Cloudflare Tunnels:** The stack includes a `cloudflared` container that automatically creates a secure Zero Trust tunnel to your domain (e.g. `https://gms.contry.app`) using the `CLOUDFLARE_TUNNEL_TOKEN`. The frontend automatically sends API requests to this domain.
 
 > **Note on Database Updates:** The Backend uses Flyway database migrations. If you push code that changes the database schema (new tables or columns), you do not need to wipe the database. The backend will automatically apply the changes upon restart without losing historical data.
 
