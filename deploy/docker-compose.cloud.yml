@@ -25,9 +25,10 @@ services:
       - /bin/sh
       - -c
       - >
-        printf 'listener 1883\nallow_anonymous true\npersistence true\npersistence_location /mosquitto/data/\nlog_dest file /mosquitto/log/mosquitto.log\n' > /tmp/mosquitto.conf && exec mosquitto -c /tmp/mosquitto.conf
+        printf 'listener 1883\nallow_anonymous true\nlistener 9001\nprotocol websockets\nallow_anonymous true\npersistence true\npersistence_location /mosquitto/data/\nlog_dest file /mosquitto/log/mosquitto.log\n' > /tmp/mosquitto.conf && exec mosquitto -c /tmp/mosquitto.conf
     ports:
       - "1883:1883"
+      - "9001:9001"
     volumes:
       - cloud_broker_data:/mosquitto/data
       - cloud_broker_log:/mosquitto/log
@@ -65,6 +66,13 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+
+  mqttx_web:
+    image: emqx/mqttx-web:latest
+    container_name: gms-mqttx-web
+    ports:
+      - "8080:80"
+    restart: unless-stopped
 
 volumes:
   timescaledb_data:
