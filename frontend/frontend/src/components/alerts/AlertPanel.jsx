@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { AnimatePresence } from 'motion/react';
 import AlertItem from './AlertItem';
 
-export default function AlertPanel({ alerts, onAcknowledge, onDismiss, onClose, zoneNameMap }) {
+export default function AlertPanel({ alerts, onAcknowledge, onAcknowledgeAll, onDismiss, onClose, zoneNameMap }) {
   const critCount = alerts.filter(a => a.severity === 'CRITICAL' && !a.acknowledged).length;
   const warnCount = alerts.filter(a => a.severity === 'WARNING'  && !a.acknowledged).length;
 
