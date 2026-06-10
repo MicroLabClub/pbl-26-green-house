@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   createGreenhouse,
   deleteGreenhouse,
+  deleteGreenhousePhoto,
   getGreenhouseGatewayConfig,
   listGreenhouses,
   updateGreenhouse,
@@ -108,11 +109,13 @@ function GreenhouseFormModal({ isOpen, onClose, onSubmit, pending, initialData }
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
+    const photoRemoved = !previewUrl && !photoFile && !!initialData?.photoUrl;
     await onSubmit({
       name:         name.trim(),
       greenhouseId: greenhouseId.trim() || undefined,
       location,
       photoFile,
+      photoRemoved,
       description:  description.trim() || undefined,
     });
   };
@@ -436,7 +439,7 @@ export default function GreenhouseListPage({ profile, onLogout, onOpenGreenhouse
     });
   };
 
-  const handleEdit = async ({ name, greenhouseId, location, photoFile, description }) => {
+  const handleEdit = async ({ name, greenhouseId, location, photoFile, photoRemoved, description }) => {
     await runAction(async () => {
       await updateGreenhouse({
         greenhouseId,
@@ -447,6 +450,8 @@ export default function GreenhouseListPage({ profile, onLogout, onOpenGreenhouse
       });
       if (photoFile) {
         await uploadGreenhousePhoto({ greenhouseId, file: photoFile });
+      } else if (photoRemoved) {
+        await deleteGreenhousePhoto({ greenhouseId });
       }
       setModalOpen(false);
       setEditingGreenhouse(null);

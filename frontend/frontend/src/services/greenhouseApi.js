@@ -48,6 +48,12 @@ export async function uploadGreenhousePhoto({ greenhouseId, file }) {
   return res.json();
 }
 
+export async function deleteGreenhousePhoto({ greenhouseId }) {
+  return apiRequest(`/v1/g/${encodeURIComponent(greenhouseId)}/photo`, {
+    method: 'DELETE',
+  });
+}
+
 export async function deleteGreenhouse({ greenhouseId }) {
   return apiRequest(`/v1/g/${encodeURIComponent(greenhouseId)}`, {
     method: 'DELETE',

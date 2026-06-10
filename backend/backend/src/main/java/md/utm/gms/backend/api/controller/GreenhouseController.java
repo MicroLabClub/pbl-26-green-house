@@ -158,6 +158,29 @@ public class GreenhouseController {
         return ResponseEntity.ok(Map.of("photo_url", photoUrl));
     }
 
+    @DeleteMapping("/{greenhouse_id}/photo")
+    public ResponseEntity<Void> deletePhoto(@PathVariable("greenhouse_id") String greenhouseId,
+                                            Authentication authentication) throws IOException {
+        String tenantId = AuthContext.requireTenantId(authentication);
+
+        if (!greenhouseStore.exists(tenantId, greenhouseId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Path greenhousePhotoDir = uploadBaseDir.resolve("greenhouses");
+        if (Files.isDirectory(greenhousePhotoDir)) {
+            try (var existing = Files.list(greenhousePhotoDir)) {
+                existing.filter(p -> p.getFileName().toString().startsWith(greenhouseId + "."))
+                        .forEach(p -> {
+                            try { Files.deleteIfExists(p); } catch (IOException ignored) {}
+                        });
+            }
+        }
+
+        greenhouseStore.updatePhotoUrl(tenantId, greenhouseId, null);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{greenhouse_id}/photo")
     public ResponseEntity<byte[]> getPhoto(@PathVariable("greenhouse_id") String greenhouseId,
                                            Authentication authentication) throws IOException {
