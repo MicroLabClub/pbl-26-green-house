@@ -124,6 +124,17 @@ public class AlertStore {
         return findById(tenantId, id);
     }
 
+    public int acknowledgeAll(String tenantId) {
+        return jdbcTemplate.update(
+                """
+                UPDATE gms.alert_event
+                SET acknowledged = TRUE
+                WHERE tenant_id = ? AND acknowledged = FALSE AND dismissed_at IS NULL
+                """,
+                tenantId
+        );
+    }
+
     public boolean dismiss(String tenantId, String id) {
         int updated = jdbcTemplate.update(
                 """

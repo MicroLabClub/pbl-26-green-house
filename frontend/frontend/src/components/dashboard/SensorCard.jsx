@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import FreshnessIndicator from './FreshnessIndicator';
 import { useDataFreshness } from '../../hooks/useDataFreshness';
+import { getDisplayUnit } from '../../config/sensorUnits';
 
 const SENSOR_LABELS = {
   air_temp:     'Air Temperature',
@@ -62,7 +63,7 @@ export default function SensorCard({ reading, index, onClick }) {
             className="text-muted text-xs leading-none mb-0.5"
             style={{ fontFamily: "'Source Code Pro', monospace" }}
           >
-            {reading.unit}
+            {getDisplayUnit(reading.sensor_key, reading.unit)}
           </span>
         </div>
 

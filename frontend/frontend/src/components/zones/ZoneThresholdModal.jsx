@@ -6,19 +6,7 @@ import { useZoneDeviceTelemetry } from '../../hooks/useZoneDeviceTelemetry';
 const mono  = { fontFamily: "'Source Code Pro', monospace" };
 const serif = { fontFamily: "'Playfair Display', Georgia, serif" };
 
-const SENSOR_UNITS = {
-  air_temp:     '°C',
-  air_hum:      '%RH',
-  soil_moist:   '%',
-  soil_temp:    '°C',
-  soil_ph:      'pH',
-  soil_cond:    'dS/m',
-  soil_n:       'mg/kg',
-  soil_p:       'mg/kg',
-  soil_k:       'mg/kg',
-  soil_salinity:'ppt',
-  soil_tds:     'ppm',
-};
+import { SENSOR_UNITS } from '../../config/sensorUnits';
 
 const LEVELS = [
   {

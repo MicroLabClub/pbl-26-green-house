@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Alert management endpoints consumed by the React dashboard.
@@ -47,6 +48,18 @@ public class AlertController {
         return alertStore.acknowledge(tenantId, id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Marks all active unacknowledged alerts as acknowledged.
+     *
+     * @return 200 OK with the number of acknowledged alerts.
+     */
+    @PostMapping("/acknowledge-all")
+    public ResponseEntity<Map<String, Integer>> acknowledgeAll(Authentication authentication) {
+        String tenantId = AuthContext.requireTenantId(authentication);
+        int updatedCount = alertStore.acknowledgeAll(tenantId);
+        return ResponseEntity.ok(Map.of("acknowledged_count", updatedCount));
     }
 
     /**

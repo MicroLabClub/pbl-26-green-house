@@ -55,5 +55,13 @@ export function useAlerts({ enabled = true, greenhouseId = '' } = {}) {
       .catch(() => {});
   }, []);
 
-  return { alerts: enabled ? alerts : [], acknowledge, dismiss };
+  const acknowledgeAll = useCallback(() => {
+    apiRequest(`/v1/alerts/acknowledge-all`, { method: 'POST' })
+      .then(() => {
+        setAlerts(prev => sortAlerts(prev.map(a => ({ ...a, acknowledged: true }))));
+      })
+      .catch(() => {});
+  }, []);
+
+  return { alerts: enabled ? alerts : [], acknowledge, dismiss, acknowledgeAll };
 }

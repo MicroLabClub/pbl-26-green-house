@@ -8,6 +8,8 @@ import {
 import { useHistoricalData } from '../../hooks/useHistoricalData';
 import { useZoneThresholds } from '../../hooks/useZoneThresholds';
 
+import { getDisplayUnit } from '../../config/sensorUnits';
+
 const RANGES = [
   { key: '24h', label: '24 h' },
   { key: '7d',  label: '7 d'  },
@@ -99,7 +101,7 @@ export default function HistoricalTrendPanel({ sensorKey, greenhouseId, zoneId, 
   });
 
   const label = SENSOR_LABELS[sensorKey] ?? sensorKey;
-  const unit  = meta?.unit ?? '';
+  const unit  = getDisplayUnit(sensorKey, meta?.unit);
   const { thresholds } = useZoneThresholds({ greenhouseId, zoneId });
   const sensorThreshold = thresholds?.[sensorKey] ?? null;
 

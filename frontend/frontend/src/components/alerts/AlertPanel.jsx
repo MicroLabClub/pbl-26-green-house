@@ -16,17 +16,27 @@ export default function AlertPanel({ alerts, onAcknowledge, onDismiss, onClose, 
           >
             Event Log
           </h3>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="text-muted hover:text-ink transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Close"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {(critCount > 0 || warnCount > 0) && onAcknowledgeAll && (
+              <button
+                onClick={onAcknowledgeAll}
+                className="text-xs font-medium text-muted hover:text-ink px-2 py-1 rounded transition-colors border border-transparent hover:border-border"
+              >
+                Acknowledge All
+              </button>
+            )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="text-muted hover:text-ink transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label="Close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex border-t border-border/50">
           <span className={`flex-1 text-center py-1.5 text-[9px] tracking-widest uppercase border-r border-border/50 ${critCount > 0 ? 'text-crit bg-crit/8' : 'text-muted'}`}
@@ -71,9 +81,10 @@ AlertPanel.propTypes = {
     })
   ).isRequired,
   onAcknowledge: PropTypes.func.isRequired,
+  onAcknowledgeAll: PropTypes.func,
   onDismiss:     PropTypes.func.isRequired,
   onClose:       PropTypes.func,
   zoneNameMap:   PropTypes.object,
 };
 
-AlertPanel.defaultProps = { onClose: null, zoneNameMap: {} };
+AlertPanel.defaultProps = { onClose: null, onAcknowledgeAll: null, zoneNameMap: {} };

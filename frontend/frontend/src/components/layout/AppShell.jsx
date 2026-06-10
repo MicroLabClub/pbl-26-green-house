@@ -39,7 +39,7 @@ export default function AppShell({ greenhouseId }) {
     enabled: !!greenhouseId,
   });
 
-  const { alerts, acknowledge, dismiss } = useAlerts({ greenhouseId });
+  const { alerts, acknowledge, dismiss, acknowledgeAll } = useAlerts({ greenhouseId });
   const { zones: irrigationZones, loading: irrigationLoading, toggleZone, manualOverride, emergencyStop } = useIrrigation(greenhouseId);
 
   const unackedCount = alerts.filter(a => !a.acknowledged).length;
@@ -148,7 +148,7 @@ export default function AppShell({ greenhouseId }) {
             )}
             {activeView === 'notifications' && (
               <motion.div key="notifications" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="h-full">
-                <AlertPanel alerts={alerts} onAcknowledge={acknowledge} onDismiss={dismiss} zoneNameMap={zoneNameMap} />
+                <AlertPanel alerts={alerts} onAcknowledge={acknowledge} onDismiss={dismiss} onAcknowledgeAll={acknowledgeAll} zoneNameMap={zoneNameMap} />
               </motion.div>
             )}
           </AnimatePresence>
