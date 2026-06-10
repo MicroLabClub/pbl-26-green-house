@@ -64,14 +64,36 @@ function GearIcon() {
   );
 }
 
-/* ── Add Greenhouse bottom-sheet modal ──────────────────────────────────── */
-function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
+/* ── Add/Edit Greenhouse bottom-sheet modal ──────────────────────────────────── */
+function GreenhouseFormModal({ isOpen, onClose, onSubmit, pending, initialData }) {
   const [name,         setName]         = useState('');
   const [greenhouseId, setGreenhouseId] = useState('');
   const [location,    setLocation]    = useState(null);
   const [photoFile,   setPhotoFile]   = useState(null);
   const [previewUrl,  setPreviewUrl]  = useState(null);
   const [description, setDescription] = useState('');
+
+  useEffect(() => {
+    if (isOpen && initialData) {
+      setName(initialData.name || '');
+      setGreenhouseId(initialData.greenhouse_id || '');
+      setLocation(
+        initialData.latitude != null && initialData.longitude != null
+          ? { lat: initialData.latitude, lng: initialData.longitude }
+          : null
+      );
+      setDescription(initialData.description || '');
+      setPreviewUrl(initialData.photoUrl || null);
+      setPhotoFile(null);
+    } else if (isOpen && !initialData) {
+      setName('');
+      setGreenhouseId('');
+      setLocation(null);
+      setPhotoFile(null);
+      setPreviewUrl(null);
+      setDescription('');
+    }
+  }, [isOpen, initialData]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
@@ -93,12 +115,6 @@ function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
       photoFile,
       description:  description.trim() || undefined,
     });
-    setName('');
-    setGreenhouseId('');
-    setLocation(null);
-    setPhotoFile(null);
-    setPreviewUrl(null);
-    setDescription('');
   };
 
   return (
@@ -125,8 +141,8 @@ function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
             {/* drag handle */}
             <div className="w-10 h-1 bg-border rounded-full mx-auto mb-5" />
 
-            <h2 className="text-2xl text-ink mb-0.5" style={serif}>New Greenhouse</h2>
-            <p className="text-sm text-muted mb-6">Add a greenhouse to your organisation</p>
+            <h2 className="text-2xl text-ink mb-0.5" style={serif}>{initialData ? 'Edit Greenhouse' : 'New Greenhouse'}</h2>
+            <p className="text-sm text-muted mb-6">{initialData ? 'Update greenhouse details' : 'Add a greenhouse to your organisation'}</p>
 
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <label className="flex flex-col gap-1.5">
@@ -165,8 +181,9 @@ function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
                   type="text"
                   value={greenhouseId}
                   onChange={(e) => setGreenhouseId(e.target.value)}
+                  disabled={!!initialData}
                   placeholder="e.g. north-wing"
-                  className="h-12 rounded-xl border border-border bg-bg px-4 text-sm text-ink outline-none focus:border-accent transition-colors"
+                  className={`h-12 rounded-xl border border-border bg-bg px-4 text-sm text-ink outline-none transition-colors ${initialData ? 'opacity-60 cursor-not-allowed' : 'focus:border-accent'}`}
                   style={mono}
                 />
               </label>
@@ -205,7 +222,7 @@ function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
                 disabled={pending || !name.trim()}
                 className="mt-1 h-12 rounded-2xl bg-ink text-surface text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {pending ? 'Creating…' : 'Add Greenhouse'}
+                {pending ? 'Saving…' : initialData ? 'Save Changes' : 'Add Greenhouse'}
               </button>
             </form>
           </motion.div>
@@ -215,27 +232,18 @@ function AddGreenhouseModal({ isOpen, onClose, onSubmit, pending }) {
   );
 }
 
-AddGreenhouseModal.propTypes = {
+GreenhouseFormModal.propTypes = {
   isOpen:   PropTypes.bool.isRequired,
   onClose:  PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   pending:  PropTypes.bool.isRequired,
+  initialData: PropTypes.object,
 };
+GreenhouseFormModal.defaultProps = { initialData: null };
 
 /* ── Single greenhouse card ─────────────────────────────────────────────── */
-function GreenhouseCard({ greenhouse, photo, description, onOpen, onDelete, onRename, pending, showConfig, onToggleConfig, config, onCopyConfig }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft]     = useState('');
+function GreenhouseCard({ greenhouse, photo, description, onOpen, onEdit, onDelete, pending, showConfig, onToggleConfig, config, onCopyConfig }) {
 
-  const startEdit = () => { setDraft(greenhouse.name); setEditing(true); };
-
-  const handleRenameSubmit = async (e) => {
-    e.preventDefault();
-    const trimmed = draft.trim();
-    if (!trimmed || trimmed === greenhouse.name) { setEditing(false); return; }
-    await onRename(trimmed);
-    setEditing(false);
-  };
 
   return (
     <article className="bg-surface2 rounded-2xl overflow-hidden flex">
@@ -248,47 +256,26 @@ function GreenhouseCard({ greenhouse, photo, description, onOpen, onDelete, onRe
       {/* Name + icon actions */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          {editing ? (
-            <form onSubmit={handleRenameSubmit} className="flex items-center gap-2">
-              <input
-                autoFocus
-                type="text"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                className="flex-1 h-9 rounded-lg border border-border bg-surface px-3 text-base text-ink outline-none focus:border-accent transition-colors"
-                style={serif}
-              />
-              <button type="submit" className="h-9 px-3 rounded-lg bg-ink text-surface text-sm font-medium whitespace-nowrap hover:opacity-85 transition-opacity">
-                Save
-              </button>
-              <button type="button" onClick={() => setEditing(false)} className="h-9 px-2 rounded-lg border border-border text-sm text-muted hover:bg-surface transition-colors">
-                ✕
-              </button>
-            </form>
-          ) : (
-            <h3 className="text-xl text-ink leading-snug" style={serif}>{greenhouse.name}</h3>
-          )}
+          <h3 className="text-xl text-ink leading-snug" style={serif}>{greenhouse.name}</h3>
         </div>
 
-        {!editing && (
-          <div className="flex items-center gap-0.5 shrink-0 -mt-0.5">
-            <button
-              onClick={startEdit}
-              title="Rename"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface/70 transition-colors"
-            >
-              <PencilIcon />
-            </button>
-            <button
-              onClick={() => onDelete(greenhouse)}
-              disabled={pending}
-              title="Delete"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-crit hover:bg-crit/10 transition-colors disabled:opacity-40"
-            >
-              <TrashIcon />
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-0.5 shrink-0 -mt-0.5">
+          <button
+            onClick={() => onEdit(greenhouse)}
+            title="Edit"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-ink hover:bg-surface/70 transition-colors"
+          >
+            <PencilIcon />
+          </button>
+          <button
+            onClick={() => onDelete(greenhouse)}
+            disabled={pending}
+            title="Delete"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-crit hover:bg-crit/10 transition-colors disabled:opacity-40"
+          >
+            <TrashIcon />
+          </button>
+        </div>
       </div>
 
       {/* Tags */}
@@ -355,8 +342,8 @@ GreenhouseCard.propTypes = {
   photo:          PropTypes.string,
   description:    PropTypes.string,
   onOpen:         PropTypes.func.isRequired,
+  onEdit:         PropTypes.func.isRequired,
   onDelete:       PropTypes.func.isRequired,
-  onRename:       PropTypes.func.isRequired,
   pending:        PropTypes.bool.isRequired,
   showConfig:     PropTypes.bool.isRequired,
   onToggleConfig: PropTypes.func.isRequired,
@@ -373,6 +360,7 @@ export default function GreenhouseListPage({ profile, onLogout, onOpenGreenhouse
   const [error,               setError]               = useState('');
   const [message,             setMessage]             = useState('');
   const [modalOpen,           setModalOpen]           = useState(false);
+  const [editingGreenhouse,   setEditingGreenhouse]   = useState(null);
   const [expandedConfigFor,   setExpandedConfigFor]   = useState('');
   const [configByGreenhouse,  setConfigByGreenhouse]  = useState({});
 
@@ -443,14 +431,26 @@ export default function GreenhouseListPage({ profile, onLogout, onOpenGreenhouse
         await uploadGreenhousePhoto({ greenhouseId: id, file: photoFile });
       }
       setModalOpen(false);
+      setEditingGreenhouse(null);
       setMessage(`Greenhouse "${created?.name || name}" created.`);
     });
   };
 
-  const handleRename = async (greenhouse, newName) => {
+  const handleEdit = async ({ name, greenhouseId, location, photoFile, description }) => {
     await runAction(async () => {
-      await updateGreenhouse({ greenhouseId: greenhouse.greenhouse_id, name: newName });
-      setMessage(`Renamed to "${newName}".`);
+      await updateGreenhouse({
+        greenhouseId,
+        name,
+        latitude: location?.lat ?? undefined,
+        longitude: location?.lng ?? undefined,
+        description: description || undefined,
+      });
+      if (photoFile) {
+        await uploadGreenhousePhoto({ greenhouseId, file: photoFile });
+      }
+      setModalOpen(false);
+      setEditingGreenhouse(null);
+      setMessage(`Updated "${name}".`);
     });
   };
 
@@ -561,8 +561,11 @@ export default function GreenhouseListPage({ profile, onLogout, onOpenGreenhouse
                 photo={photos[gh.greenhouse_id] ?? null}
                 description={descriptions[gh.greenhouse_id] ?? null}
                 onOpen={onOpenGreenhouse}
+                onEdit={(ghObj) => {
+                  setEditingGreenhouse({ ...ghObj, photoUrl: photos[ghObj.greenhouse_id] });
+                  setModalOpen(true);
+                }}
                 onDelete={handleDelete}
-                onRename={(name) => handleRename(gh, name)}
                 pending={pending}
                 showConfig={expandedConfigFor === gh.greenhouse_id}
                 onToggleConfig={handleToggleConfig}
@@ -576,19 +579,20 @@ export default function GreenhouseListPage({ profile, onLogout, onOpenGreenhouse
 
       {/* ── FAB ─────────────────────────────────────────────────────────── */}
       <button
-        onClick={() => setModalOpen(true)}
+        onClick={() => { setEditingGreenhouse(null); setModalOpen(true); }}
         aria-label="Add greenhouse"
         className="fixed bottom-8 right-6 w-14 h-14 rounded-full bg-ink text-surface text-2xl font-light shadow-lg hover:opacity-90 active:scale-95 transition-all z-30 flex items-center justify-center"
       >
         +
       </button>
 
-      {/* ── Add modal ───────────────────────────────────────────────────── */}
-      <AddGreenhouseModal
+      {/* ── Add/Edit modal ──────────────────────────────────────────────── */}
+      <GreenhouseFormModal
         isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleCreate}
+        onClose={() => { setModalOpen(false); setEditingGreenhouse(null); }}
+        onSubmit={editingGreenhouse ? handleEdit : handleCreate}
         pending={pending}
+        initialData={editingGreenhouse}
       />
     </div>
   );
